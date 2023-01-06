@@ -17,6 +17,7 @@ router.post("/signup", (req, res) => {
         user
           .create({
             name: req.body.name,
+            contactNumber: req.body.contactNumber,
             email: req.body.email,
             password: hash,
           })
@@ -35,24 +36,27 @@ router.post("/signup", (req, res) => {
 router.post("/login", (req, res) => {
   user
     .find({ email: req.body.email })
-    .exec()
+    // .exec()
+
     .then((result) => {
+      console.log("user exists");
       if (result.length < 1) {
         res.status(401).json({
           message: "user does not exist",
         });
       } else {
         bcrypt.compare(req.body.password, result[0].password, (err, newRes) => {
-          if (err)
+          if (err) {
             res.status(500).json({
               message: err,
             });
-          else {
+          } else {
             if (newRes) {
               const token = jwt.sign(
                 {
                   name: result[0].name,
                   email: result[0].email,
+                  id: result[0]._id,
                 },
                 process.env.USER_KEY,
                 {

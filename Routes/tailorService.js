@@ -3,7 +3,8 @@ const mongoose = require("mongoose");
 const router = express.Router();
 const path = require("path");
 const multer = require("multer");
-const Products = require("../models/admin/products.js");
+const TailorService = require("../models/Tailor/tailorService");
+const User = require("../models/Tailor/user");
 const checkAuth = require("../middleware/middleware");
 
 const fileLimit = { fileSize: 1024 * 1024 * 5 };
@@ -18,7 +19,6 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   fileLimit: fileLimit,
-  // fileFilter: fileFilter,
   fileFilter: function (req, file, callback) {
     var ext = path.extname(file.originalname);
     if (ext !== ".png" && ext !== ".jpg" && ext !== ".gif" && ext !== ".jpeg") {
@@ -28,13 +28,13 @@ const upload = multer({
   },
 });
 
-router.post("/", upload.single("imgUrl"), (req, res) => {
-  Products.create({
-    pName: req.body.pName,
-    pDes: req.body.pDes,
-    pPrice: req.body.pPrice,
-    imgUrl: req.file.path,
-    pCategory: req.body.pCategory,
+router.post("/", checkAuth, (req, res) => {
+  TailorService.create({
+    sName: req.body.sName,
+    sDes: req.body.sDes,
+    // imgUrl: req.file.imgUrl,
+    sPrice: req.body.sPrice,
+    tailor: req.body.userId,
   })
     .then((result) => {
       res.status(200).json({
@@ -47,7 +47,8 @@ router.post("/", upload.single("imgUrl"), (req, res) => {
 });
 
 router.get("/", (req, res) => {
-  Products.find()
+  TailorService.find()
+    .populate("tailor")
     .then((result) => {
       result.map((product) => {
         product.imgUrl = product.imgUrl.split("\\").join("/");
@@ -79,36 +80,36 @@ router.get("/", (req, res) => {
 
 // searching by name products :
 
-router.get("/search/:key", (req, res) => {
-  Products.find({ pName: { $regex: req.params.key } })
-    .then((result) => {
-      res.status(200).json({
-        result,
-      });
-    })
-    .catch((err) => {
-      res.status(500).json({
-        error: err,
-      });
-    });
-});
+// router.get("/search/:key", (req, res) => {
+//   Products.find({ pName: { $regex: req.params.key } })
+//     .then((result) => {
+//       res.status(200).json({
+//         result,
+//       });
+//     })
+//     .catch((err) => {
+//       res.status(500).json({
+//         error: err,
+//       });
+//     });
+// });
 
-router.get("/:category", (req, res) => {
-  Products.find({ pCategory: req.params.category })
-    .then((result) => {
-      res.status(200).json({
-        result,
-      });
-    })
-    .catch((err) => {
-      res.status(500).json({
-        error: err,
-      });
-    });
-});
+// router.get("/:category", (req, res) => {
+//   Products.find({ pCategory: req.params.category })
+//     .then((result) => {
+//       res.status(200).json({
+//         result,
+//       });
+//     })
+//     .catch((err) => {
+//       res.status(500).json({
+//         error: err,
+//       });
+//     });
+// });
 
 router.delete("/:id", (req, res) => {
-  Products.findByIdAndDelete({ _id: req.params.id })
+  TailorService.findByIdAndDelete({ _id: req.params.id })
     .then((result) =>
       res.status(200).json({
         result,
@@ -120,7 +121,7 @@ router.delete("/:id", (req, res) => {
 });
 
 router.put("/:id", (req, res) => {
-  Products.findOneAndUpdate({ _id: req.params.id }, req.body)
+  TailorService.findOneAndUpdate({ _id: req.params.id }, req.body)
     .then((result) => {
       res.status(200).json({ result });
       console.log(req.body);

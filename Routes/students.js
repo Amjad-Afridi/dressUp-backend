@@ -1,8 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const checkAuth = require("../middleware/middleware.js");
 const router = express.Router();
 const Student = require("../models/practice/student.js");
-const checkAuth = require("../midllewares/check-auth");
 router.get("/", checkAuth, (req, res) => {
   Student.find()
     .then((result) => {
