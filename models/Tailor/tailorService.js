@@ -1,11 +1,16 @@
 const mongoose = require("mongoose");
-const User = require("./user");
+const Tailor = require("./tailor");
 const serviceSchema = mongoose.Schema({
-  sName: { type: String, required: true },
-  sDes: { type: String },
-  sPrice: { type: Number, required: true },
-  // ratings: { type: Number, default: 0 },
+  name: { type: String, required: true },
+  description: { type: String },
+  price: { type: Number, required: true },
   imgUrl: { type: String },
-  tailor: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  tailor: { type: mongoose.Schema.Types.ObjectId, ref: "Tailor" },
+  ratings: [
+    {
+      stars: Number,
+      postedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Customer" },
+    },
+  ],
 });
 module.exports = mongoose.model("TailorService", serviceSchema);
