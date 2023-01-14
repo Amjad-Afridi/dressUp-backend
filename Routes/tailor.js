@@ -10,14 +10,31 @@ const {
   getProfile,
   getTailorById,
   getAllTailors,
+  createService,
+  deleteService,
+  updateService,
 } = require("../controllers/tailor/tailor");
-const checkAuth = require("../middleware/checkAuth");
+const checkTailorAuth = require("../middleware/checkTailorAuth");
 router.post("/signup", signup);
 router.post("/login", login);
-router.get("/services", checkAuth, getTailorServices);
-router.post("/profile", upload.single("imgUrl"), checkAuth, createProfile);
-router.get("/profile", checkAuth, getProfile);
-router.put("/profile/:id", checkAuth, updateProfile);
-router.put("/allTailors", checkAuth, getAllTailors);
-router.put("/:id", checkAuth, getTailorById);
+router.post(
+  "/profile",
+  upload.single("imgUrl"),
+  checkTailorAuth,
+  createProfile
+);
+router.get("/profile", checkTailorAuth, getProfile);
+router.put("/profile/:id", checkTailorAuth, updateProfile);
+router.get("/", checkTailorAuth, getAllTailors);
+router.get("/service", checkTailorAuth, getTailorServices);
+router.delete("/service/:id", checkTailorAuth, deleteService);
+router.put("/service/:id", checkTailorAuth, updateService);
+router.get("/:id", checkTailorAuth, getTailorById);
+router.post(
+  "/service",
+  upload.single("imgUrl"),
+  checkTailorAuth,
+  createService
+);
+
 module.exports = router;

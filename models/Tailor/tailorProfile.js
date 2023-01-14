@@ -11,6 +11,10 @@ const tailorProfileSchema = mongoose.Schema({
   joinDate: String,
   languages: [String],
   keyAreas: [String],
+  location: String,
+  gender: {
+    type: String,
+    enum: ["male", "female"],
+  },
 });
-
 module.exports = mongoose.model("TailorProfile", tailorProfileSchema);

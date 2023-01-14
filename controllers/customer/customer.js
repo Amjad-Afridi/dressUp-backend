@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
-const Tailor = require("../../models/tailor/tailor.js");
-const TailorProfile = require("../../models/tailor/tailorProfile");
-const TailorService = require("../../models/tailor/tailorService.js");
+const Customer = require("../../models/customer/customer.js");
+const Product = require("../../models/admin/products.js");
+const ProductsCart = require("../../models/customer/productsCart");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -11,10 +11,10 @@ const signup = (req, res) => {
     if (err) {
       return res.status(200).json({ error: err });
     } else {
-      const TailorExits = await Tailor.findOne({ email: req.body.email });
+      const CustomerExits = await Customer.findOne({ email: req.body.email });
 
-      if (!TailorExits) {
-        Tailor.create({
+      if (!CustomerExits) {
+        Customer.create({
           name: req.body.name,
           contactNumber: req.body.contactNumber,
           email: req.body.email,
@@ -24,7 +24,7 @@ const signup = (req, res) => {
         });
       } else {
         res.status(401).json({
-          message: "Tailor Already exists",
+          message: "Customer Already exists",
         });
       }
     }
@@ -32,13 +32,13 @@ const signup = (req, res) => {
 };
 
 const login = (req, res) => {
-  Tailor.find({ email: req.body.email })
+  Customer.find({ email: req.body.email })
     // .exec()
 
     .then((result) => {
       if (result.length < 1) {
         res.status(401).json({
-          message: "Tailor does not exist",
+          message: "Customer does not exist",
         });
       } else {
         bcrypt.compare(req.body.password, result[0].password, (err, newRes) => {
@@ -80,22 +80,21 @@ const createProfile = async (req, res) => {
   const currentDate =
     date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
 
-  let profile = await TailorProfile.create({
+  let profile = await CustomerProfile.create({
     name: req.body.name,
     description: req.body.description,
     imgUrl: req.file.path.split("\\").join("/"),
     languages: req.body.languages,
     keyAreas: req.body.keyAreas,
     joinDate: currentDate,
-    location: req.body.location,
-    gender: req.body.gender,
+    location: String,
   });
 
   await profile.save((err, newProfile) => {
     if (err) return console.error(err);
     res.json(newProfile);
   });
-  await Tailor.findByIdAndUpdate(
+  await Customer.findByIdAndUpdate(
     req.userId,
     {
       $set: { profile: profile._id },
@@ -105,7 +104,7 @@ const createProfile = async (req, res) => {
 };
 
 const updateProfile = (req, res) => {
-  TailorProfile.findByIdAndUpdate(req.params.id, req.body, { new: true })
+  CustomerProfile.findByIdAndUpdate(req.params.id, req.body, { new: true })
     .then((result) => {
       res.status(200).json({ result });
       console.log(req);
@@ -115,7 +114,7 @@ const updateProfile = (req, res) => {
     });
 };
 const getProfile = async (req, res) => {
-  Tailor.findById(req.userId)
+  Customer.findById(req.userId)
     .populate({ path: "profile" })
     .select("_id")
     .then((result) => {
@@ -130,110 +129,55 @@ const getProfile = async (req, res) => {
     });
 };
 
-const getTailorById = async (req, res) => {
-  Tailor.findById(req.params.id)
-    .populate({ path: "profile" })
-    .populate({ path: "services" })
-    .select("-password")
-    .then((result) => {
-      res.status(200).json({
-        result,
-      });
-    })
-    .catch((err) => {
-      res.status(500).json({
-        err,
-      });
-    });
-};
+const addToCart = async (req, res) => {
+  const customer = await Customer.findById(req.userId);
+  const { productId, quantity } = req.body;
+  product = await Product.findById(productId);
+  var cart = await ProductsCart.findOne({ customer: req.userId });
+  const price = product.price;
+  const name = product.name;
+  var bill;
 
-const getAllTailors = (req, res) => {
-  Tailor.find()
-    .select("-password")
-    .then((result) => {
-      res.status(200).json({
-        result,
-      });
-    })
-    .catch((err) => {
-      res.status(500).json({
-        err,
-      });
-    });
-};
-
-const createService = async (req, res) => {
-  let service = await TailorService.create({
-    name: req.body.name,
-    description: req.body.description,
-    imgUrl: req.file.path.split("\\").join("/"),
-    price: req.body.price,
-    tailor: req.userId,
-  });
-
-  await service.save((err, user) => {
-    if (err) return console.error(err);
-    res.json(user);
-  });
-  await Tailor.findByIdAndUpdate(
-    req.userId,
-    {
-      $push: { services: service._id },
-    },
-    { new: true }
-  );
-};
-
-const getTailorServices = (req, res) => {
-  TailorService.find({ tailor: req.userId })
-    .then((result) => {
-      res.status(200).json({
-        result,
-      });
-    })
-    .catch((err) => {
-      res.status(500).json({
-        err,
-      });
-    });
-};
-
-const deleteService = async (req, res) => {
-  const service = await TailorService.findByIdAndDelete({ _id: req.params.id });
-  if (service) {
-    res.status(200).json({ service });
-  } else {
-    return res.status(500).json({ err: "no service to delete !" });
+  if (!product) {
+    res.status(404).send({ message: "product not found" });
+    return;
   }
-  await Tailor.findByIdAndUpdate(
-    req.userId,
-    {
-      $pull: { services: service._id },
-    },
-    { new: true }
-  );
-};
+  if (cart) {
+    const productIndex = cart.products.findIndex(
+      (product) => product.productId == productId
+    );
+    if (productIndex > -1) {
+      let product = cart.products[productIndex];
+      product.quantity += quantity;
 
-const updateService = (req, res) => {
-  TailorService.findByIdAndUpdate(req.params.id, req.body, { new: true })
-    .then((result) => {
-      res.status(200).json({ result });
-    })
-    .catch((error) => {
-      res.status(500).json({ error: error });
+      cart.bill = cart.products.reduce((acc, curr) => {
+        return acc + curr.quantity * curr.price;
+      }, 0);
+      cart.products[productIndex] = product;
+      await cart.save();
+      res.status(200).send(cart);
+    } else {
+      cart.products.push({ productId, name, quantity, price });
+      cart.bill = cart.products.reduce((acc, curr) => {
+        return acc + curr.quantity * curr.price;
+      }, 0);
+
+      await cart.save();
+      res.status(200).send(cart);
+    }
+  } else {
+    cart = await ProductsCart.create({
+      customer: req.userId,
+      products: [{ productId, name, price, quantity }],
+      bill: price * quantity,
     });
+  }
 };
-
 module.exports = {
   signup,
   login,
   createProfile,
   updateProfile,
   getProfile,
-  getTailorById,
-  getAllTailors,
-  createService,
-  getTailorServices,
-  deleteService,
-  updateService,
+  addToCart,
 };

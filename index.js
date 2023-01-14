@@ -1,8 +1,10 @@
 const express = require("express");
 const app = express();
 const tailorRouter = require("./Routes/tailor");
-const productsRouter = require("./Routes/products");
-const tailorServiceRouter = require("./Routes/tailorService");
+const adminRouter = require("./Routes/admin");
+const customerRouter = require("./Routes/customer");
+const riderRouter = require("./Routes/rider.js");
+
 require("dotenv").config();
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
@@ -17,8 +19,9 @@ app.use(
 );
 
 app.use("/tailor", tailorRouter);
-app.use("/products", productsRouter);
-app.use("/tailorService", tailorServiceRouter);
+app.use("/customer", customerRouter);
+app.use("/admin", adminRouter);
+app.use("/rider", riderRouter);
 
 mongoose.connect(process.env.DB_CON_URL, (err) => {
   if (err) console.log(err.message);
