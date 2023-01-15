@@ -3,6 +3,7 @@ const Products = require("../../models/admin/products");
 const Admin = require("../../models/admin/admin");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { findById } = require("../../models/admin/products");
 require("dotenv").config();
 
 const signup = (req, res) => {
@@ -154,7 +155,24 @@ const updateById = (req, res) => {
       res.status(500).json({ error: error });
     });
 };
+const getCustomerOrders = async (req, res) => {
+  const admin = await Admin.findById(req.userId).populate({
+    path: "customerOrders",
+    populate: {
+      path: "cart",
+    },
+  });
 
+  // .populate({
+  //   path: "customerOrders.cart",
+  // });
+  console.log(admin);
+  // if (admin.customerOrders.length > 0) {
+  //   res.status(200).json(admin.customerOrders);
+  // } else {
+  //   res.status(200).json({ err: "no customer orders found" });
+  // }
+};
 module.exports = {
   signup,
   login,
@@ -164,4 +182,5 @@ module.exports = {
   deleteById,
   getByCategory,
   updateById,
+  getCustomerOrders,
 };

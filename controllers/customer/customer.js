@@ -2,8 +2,11 @@ const mongoose = require("mongoose");
 const Customer = require("../../models/customer/customer.js");
 const Product = require("../../models/admin/products.js");
 const ProductsCart = require("../../models/customer/productsCart");
+const Admin = require("../../models/admin/admin");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const productsOrder = require("../../models/customer/productsOrder.js");
+const { findOneAndUpdate } = require("../../models/admin/products.js");
 require("dotenv").config();
 
 const signup = (req, res) => {
@@ -130,12 +133,12 @@ const getProfile = async (req, res) => {
 };
 
 const addToCart = async (req, res) => {
-  const customer = await Customer.findById(req.userId);
   const { productId, quantity } = req.body;
   product = await Product.findById(productId);
   var cart = await ProductsCart.findOne({ customer: req.userId });
   const price = product.price;
   const name = product.name;
+  const imgUrl = product.imgUrl;
   var bill;
 
   if (!product) {
@@ -168,11 +171,96 @@ const addToCart = async (req, res) => {
   } else {
     cart = await ProductsCart.create({
       customer: req.userId,
-      products: [{ productId, name, price, quantity }],
+      products: [{ productId, name, price, imgUrl, quantity }],
       bill: price * quantity,
     });
   }
 };
+
+const deleteItemFromCart = async (req, res) => {
+  const productId = req.params.id;
+  var product = await Product.findById(productId);
+  try {
+    var cart = await ProductsCart.findOne({ customer: req.userId });
+    productIndex = cart.products.findIndex(
+      (product) => product.productId == productId
+    );
+    if (productIndex > -1) {
+      let product = cart.products[productIndex];
+      cart.bill -= product.quantity * product.price;
+      if (cart.bill < 0) {
+        cart.bill = 0;
+      }
+      cart.products.splice(productIndex, 1);
+      cart.bill = cart.products.reduce((acc, curr) => {
+        return acc + curr.quantity * curr.price;
+      }, 0);
+      cart = await cart.save();
+      res.status(200).send(cart);
+    } else {
+      res.status(404).send("item not found");
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(400).send();
+  }
+};
+
+const getCart = async (req, res) => {
+  const userId = req.userId;
+  try {
+    const cart = await ProductsCart.findOne({ userId });
+    if (cart && cart.products.length > 0) {
+      res.status(200).json(cart);
+    } else {
+      res.send(null);
+    }
+  } catch (error) {
+    res.status(500).json();
+  }
+};
+
+const createOrder = async (req, res) => {
+  const date = new Date();
+  const currentDate =
+    date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
+  const userId = req.userId;
+  const userCart = await ProductsCart.findOne({ userId });
+  const admin = await Admin.findOne({ name: "admin" });
+  const order = await productsOrder.create({
+    cart: userCart._id,
+    orderStatus: "submitted",
+    date: currentDate,
+  });
+  const result = await order.save();
+  if (result) {
+    res.status(200).json(result);
+  } else {
+    return res.status(500).json("no order created !!");
+  }
+
+  await Admin.findOneAndUpdate(
+    admin._id,
+    {
+      $push: {
+        customerOrders: result._id,
+      },
+    },
+    { new: true }
+  );
+
+  await Customer.findOneAndUpdate(
+    userId,
+    {
+      $push: {
+        orders: result._id,
+      },
+    },
+    { new: true }
+  );
+  await ProductsCart.findOneAndDelete({ userId });
+};
+
 module.exports = {
   signup,
   login,
@@ -180,4 +268,7 @@ module.exports = {
   updateProfile,
   getProfile,
   addToCart,
+  deleteItemFromCart,
+  getCart,
+  createOrder,
 };
