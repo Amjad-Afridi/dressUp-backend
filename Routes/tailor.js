@@ -25,11 +25,11 @@ router.post(
 );
 router.get("/profile", checkTailorAuth, getProfile);
 router.put("/profile/:id", checkTailorAuth, updateProfile);
-router.get("/", checkTailorAuth, getAllTailors);
+router.get("/", getAllTailors);
 router.get("/service", checkTailorAuth, getTailorServices);
 router.delete("/service/:id", checkTailorAuth, deleteService);
 router.put("/service/:id", checkTailorAuth, updateService);
-router.get("/:id", checkTailorAuth, getTailorById);
+router.get("/:id", getTailorById);
 router.post(
   "/service",
   upload.single("imgUrl"),
