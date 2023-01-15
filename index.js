@@ -22,9 +22,9 @@ app.use("/tailor", tailorRouter);
 app.use("/customer", customerRouter);
 app.use("/admin", adminRouter);
 app.use("/rider", riderRouter);
-app.use("/", (req, res) => {
-  res.status(200).json({ message: "home page" });
-});
+// app.use("/", (req, res) => {
+//   res.status(200).json({ message: "home page" });
+// });
 mongoose.connect(process.env.DB_CON_URL, (err) => {
   if (err) console.log(err.message);
   else console.log("connected to the database");
