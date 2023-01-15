@@ -25,10 +25,13 @@ app.use("/rider", riderRouter);
 app.use("/", (req, res) => {
   res.status(200).json({ message: "home page" });
 });
-mongoose.connect("mongodb://localhost:27017/DressUpDB", (err) => {
-  if (err) console.log(err.message);
-  else console.log("connected to the database");
-});
+mongoose.connect(
+  "mongodb+srv://amjad:1234@cluster0.8iwl1fs.mongodb.net/?retryWrites=true&w=majority",
+  (err) => {
+    if (err) console.log(err.message);
+    else console.log("connected to the database");
+  }
+);
 
 const port = process.env.PORT || 7070;
 app.listen(port, () => {

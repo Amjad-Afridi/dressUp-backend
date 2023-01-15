@@ -57,7 +57,7 @@ const login = (req, res) => {
                   email: result[0].email,
                   _id: result[0]._id,
                 },
-                process.env.USER_KEY,
+                "user registered",
                 {
                   expiresIn: "24h",
                 }
