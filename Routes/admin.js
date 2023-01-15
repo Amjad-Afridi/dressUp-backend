@@ -23,9 +23,9 @@ router.post(
 router.post("/signup", signup);
 router.post("/login", login);
 router.get("/products", allProducts);
-router.get("/products/search/:key", checkAdminAuth, searchByName);
+router.get("/products/search/:key", searchByName);
 router.delete("/products/:id", checkAdminAuth, deleteById);
-router.get("/products/:category", checkAdminAuth, getByCategory);
+router.get("/products/:category", getByCategory);
 router.put("/products/:id", checkAdminAuth, updateById);
 router.get("/customer-orders", checkAdminAuth, getCustomerOrders);
 
