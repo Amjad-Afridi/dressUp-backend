@@ -15,7 +15,12 @@ const {
 const checkCustomerAuth = require("../middleware/checkCustomerAuth");
 router.post("/signup", signup);
 router.post("/login", login);
-router.post("/profile", checkCustomerAuth,upload.single("imgUrl"), createProfile);
+router.post(
+  "/profile",
+  checkCustomerAuth,
+  upload.single("imgUrl"),
+  createProfile
+);
 router.get("/profile", checkCustomerAuth, getProfile);
 router.put("/profile/:id", checkCustomerAuth, updateProfile);
 router.post("/cart", checkCustomerAuth, addToCart);
