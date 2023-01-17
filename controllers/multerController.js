@@ -1,5 +1,27 @@
 const path = require("path");
 const multer = require("multer");
+const cloudinary = require("cloudinary");
+// const cloudinaryStorage = require("multer-storage-cloudinary");
+const dotenv = require("dotenv");
+dotenv.config();
+cloudinary.config({
+  cloud_name: "dbyx5wh8g",
+  api_key: "573558398781173",
+  api_secret: "CHMLPX-k5BYvZG3MTctFWWaAouo",
+});
+// const storage = cloudinaryStorage({
+//   folder: "uploads",
+//   allowedFormats: ["jpg", "png"],
+//   transformation: [
+//     {
+//       width: 500,
+//       height: 500,
+//       crop: "limit",
+//     },
+//   ],
+//   cloudinary: cloudinary,
+// });
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: "uploads",
