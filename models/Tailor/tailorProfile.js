@@ -7,7 +7,7 @@ const tailorProfileSchema = mongoose.Schema({
   description: {
     type: String,
   },
-  imgUrl: { type: String, default: "uploads/134195-tailor.png" },
+  imgUrl: { type: String,  },
   joinDate: String,
   languages: [String],
   keyAreas: [String],

@@ -83,7 +83,7 @@ const createProfile = async (req, res) => {
   let profile = await TailorProfile.create({
     name: req.body.name,
     description: req.body.description,
-    imgUrl: req.file.path.split("\\").join("/"),
+    imgUrl: req.file.path,
     languages: req.body.languages,
     keyAreas: req.body.keyAreas,
     joinDate: currentDate,
@@ -166,7 +166,7 @@ const createService = async (req, res) => {
   let service = await TailorService.create({
     name: req.body.name,
     description: req.body.description,
-    imgUrl: req.file.path.split("\\").join("/"),
+    imgUrl: req.file.path,
     price: req.body.price,
     tailor: req.userId,
   });

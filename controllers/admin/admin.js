@@ -78,7 +78,7 @@ const createProduct = (req, res) => {
     name: req.body.name,
     description: req.body.description,
     price: req.body.price,
-    imgUrl: req.file.path.split("\\").join("/"),
+    imgUrl: req.file.path,
     category: req.body.category,
   })
     .then((result) => {

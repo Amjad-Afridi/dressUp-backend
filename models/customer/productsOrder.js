@@ -7,7 +7,7 @@ const ProductsOrderSchema = mongoose.Schema({
   },
   orderStatus: {
     type: String,
-    enum: ["submitted", "pending", "completed", "rejected"],
+    enum: ["pending", "completed"],
   },
   date: String,
 });

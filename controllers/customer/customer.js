@@ -6,7 +6,8 @@ const Admin = require("../../models/admin/admin");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const productsOrder = require("../../models/customer/productsOrder.js");
-const { findOneAndUpdate } = require("../../models/admin/products.js");
+const CustomerProfile = require("../../models/customer/customerProfile.js");
+// const { findOneAndUpdate } = require("../../models/admin/products.js");
 require("dotenv").config();
 
 const signup = (req, res) => {
@@ -83,43 +84,39 @@ const createProfile = async (req, res) => {
   const currentDate =
     date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
 
+  const profileExists = await CustomerProfile.findOne({ customer: req.userId });
+  if (profileExists) {
+    return res.json({ message: "profile already exists" });
+  }
+
   let profile = await CustomerProfile.create({
     name: req.body.name,
-    description: req.body.description,
-    imgUrl: req.file.path.split("\\").join("/"),
-    languages: req.body.languages,
-    keyAreas: req.body.keyAreas,
+    imgUrl: req.file.path,
+    gender: req.body.gender,
     joinDate: currentDate,
-    location: String,
+    location: req.body.location,
+    customer: req.userId,
   });
 
   await profile.save((err, newProfile) => {
     if (err) return console.error(err);
     res.json(newProfile);
   });
-  await Customer.findByIdAndUpdate(
-    req.userId,
-    {
-      $set: { profile: profile._id },
-    },
-    { new: true }
-  );
 };
 
 const updateProfile = (req, res) => {
   CustomerProfile.findByIdAndUpdate(req.params.id, req.body, { new: true })
     .then((result) => {
       res.status(200).json({ result });
-      console.log(req);
     })
     .catch((error) => {
       res.status(500).json({ error: error });
     });
 };
 const getProfile = async (req, res) => {
-  Customer.findById(req.userId)
-    .populate({ path: "profile" })
-    .select("_id")
+  console.log("get profile");
+  CustomerProfile.findOne({ customer: req.userId })
+    .select("-customer -__v")
     .then((result) => {
       res.status(200).json({
         result,
