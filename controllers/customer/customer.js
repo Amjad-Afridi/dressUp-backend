@@ -90,7 +90,7 @@ const createProfile = async (req, res) => {
   }
 
   let profile = await CustomerProfile.create({
-    name: req.body.name,
+    userName: req.body.userName,
     imgUrl: req.file.path,
     gender: req.body.gender,
     joinDate: currentDate,
