@@ -79,7 +79,10 @@ const createProfile = async (req, res) => {
   const date = new Date();
   const currentDate =
     date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
-
+  const profileExists = await TailorProfile.findOne({ tailor: req.userId });
+  if (profileExists) {
+    return res.json({ message: "Profile already exists" });
+  }
   let profile = await TailorProfile.create({
     name: req.body.name,
     description: req.body.description,
@@ -89,19 +92,13 @@ const createProfile = async (req, res) => {
     joinDate: currentDate,
     location: req.body.location,
     gender: req.body.gender,
+    tailor: req.userId,
   });
 
   await profile.save((err, newProfile) => {
     if (err) return console.error(err);
     res.json(newProfile);
   });
-  await Tailor.findByIdAndUpdate(
-    req.userId,
-    {
-      $set: { profile: profile._id },
-    },
-    { new: true }
-  );
 };
 
 const updateProfile = (req, res) => {
@@ -115,9 +112,7 @@ const updateProfile = (req, res) => {
     });
 };
 const getProfile = async (req, res) => {
-  Tailor.findById(req.userId)
-    .populate({ path: "profile" })
-    .select("_id")
+  TailorProfile.findOne({ tailor: req.userId })
     .then((result) => {
       res.status(200).json({
         result,
@@ -131,13 +126,15 @@ const getProfile = async (req, res) => {
 };
 
 const getTailorById = async (req, res) => {
+  const service = await TailorService.find({ tailor: req.params.id });
+  const profile = await TailorProfile.findOne({ tailor: req.params.id });
   Tailor.findById(req.params.id)
-    .populate({ path: "profile" })
-    .populate({ path: "services" })
     .select("-password")
-    .then((result) => {
+    .then((tailor) => {
       res.status(200).json({
-        result,
+        tailor,
+        profile,
+        service,
       });
     })
     .catch((err) => {
