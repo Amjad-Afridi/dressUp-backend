@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 const Tailor = require("./tailor");
 const serviceSchema = mongoose.Schema({
-  name: { type: String, required: true },
+  name: { type: String },
   description: { type: String },
-  price: { type: Number, required: true },
+  price: { type: Number },
   imgUrl: { type: String },
   tailor: { type: mongoose.Schema.Types.ObjectId, ref: "Tailor" },
   ratings: [

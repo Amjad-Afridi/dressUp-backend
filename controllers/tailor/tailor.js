@@ -172,13 +172,6 @@ const createService = async (req, res) => {
     if (err) return console.error(err);
     res.json(user);
   });
-  await Tailor.findByIdAndUpdate(
-    req.userId,
-    {
-      $push: { services: service._id },
-    },
-    { new: true }
-  );
 };
 
 const getTailorServices = (req, res) => {
@@ -202,13 +195,13 @@ const deleteService = async (req, res) => {
   } else {
     return res.status(500).json({ err: "no service to delete !" });
   }
-  await Tailor.findByIdAndUpdate(
-    req.userId,
-    {
-      $pull: { services: service._id },
-    },
-    { new: true }
-  );
+  // await Tailor.findByIdAndUpdate(
+  //   req.userId,
+  //   {
+  //     $pull: { services: service._id },
+  //   },
+  //   { new: true }
+  // );
 };
 
 const updateService = (req, res) => {

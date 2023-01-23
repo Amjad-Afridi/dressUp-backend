@@ -3,7 +3,6 @@ const Tailor = require("./tailor");
 const tailorProfileSchema = mongoose.Schema({
   name: {
     type: String,
-    required: true,
   },
   description: {
     type: String,
@@ -15,7 +14,6 @@ const tailorProfileSchema = mongoose.Schema({
   location: String,
   gender: {
     type: String,
-    enum: ["male", "female"],
   },
   tailor: { type: mongoose.Schema.Types.ObjectId, ref: "Tailor" },
 });

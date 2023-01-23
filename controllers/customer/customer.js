@@ -7,6 +7,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const productsOrder = require("../../models/customer/productsOrder.js");
 const CustomerProfile = require("../../models/customer/customerProfile.js");
+const Orders = require("../../models/admin/orders.js");
 // const { findOneAndUpdate } = require("../../models/admin/products.js");
 require("dotenv").config();
 
@@ -95,6 +96,7 @@ const createProfile = async (req, res) => {
     gender: req.body.gender,
     joinDate: currentDate,
     location: req.body.location,
+    phoneNumber: req.body.phoneNumber,
     customer: req.userId,
   });
 
@@ -114,7 +116,6 @@ const updateProfile = (req, res) => {
     });
 };
 const getProfile = async (req, res) => {
-  console.log("get profile");
   CustomerProfile.findOne({ customer: req.userId })
     .select("-customer -__v")
     .then((result) => {
@@ -157,7 +158,7 @@ const addToCart = async (req, res) => {
       await cart.save();
       res.status(200).send(cart);
     } else {
-      cart.products.push({ productId, name, quantity, price });
+      cart.products.push({ productId, imgUrl, name, quantity, price });
       cart.bill = cart.products.reduce((acc, curr) => {
         return acc + curr.quantity * curr.price;
       }, 0);
@@ -221,13 +222,12 @@ const createOrder = async (req, res) => {
   const date = new Date();
   const currentDate =
     date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
-  const userId = req.userId;
-  const userCart = await ProductsCart.findOne({ userId });
-  const admin = await Admin.findOne({ name: "admin" });
   const order = await productsOrder.create({
-    cart: userCart._id,
-    orderStatus: "submitted",
+    products: req.body.products,
+    totalPrice: req.body.totalPrice,
+    orderStatus: "pending",
     date: currentDate,
+    customer: req.userId,
   });
   const result = await order.save();
   if (result) {
@@ -236,26 +236,33 @@ const createOrder = async (req, res) => {
     return res.status(500).json("no order created !!");
   }
 
-  await Admin.findOneAndUpdate(
-    admin._id,
+  const orders = await Orders.findOne({});
+  if (!orders) {
+    await Orders.create({
+      customerOrders: result,
+    });
+    return;
+  }
+  await Orders.findOneAndUpdate(
+    orders._id,
     {
       $push: {
-        customerOrders: result._id,
+        customerOrders: result,
       },
     },
     { new: true }
   );
-
-  await Customer.findOneAndUpdate(
-    userId,
-    {
-      $push: {
-        orders: result._id,
-      },
-    },
-    { new: true }
-  );
-  await ProductsCart.findOneAndDelete({ userId });
+  // console.log(orders.customerOrders);
+  // await Customer.findOneAndUpdate(
+  //   userId,
+  //   {
+  //     $push: {
+  //       orders: result._id,
+  //     },
+  //   },
+  //   { new: true }
+  // );
+  // await ProductsCart.findOneAndDelete({ userId });
 };
 
 module.exports = {

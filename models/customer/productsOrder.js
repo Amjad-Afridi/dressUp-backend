@@ -1,14 +1,11 @@
 const mongoose = require("mongoose");
-const ProductsCart = require("./productsCart");
+const Customer = require("./customer");
 const ProductsOrderSchema = mongoose.Schema({
-  cart: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "ProductsCart",
-  },
+  products: [{}],
   orderStatus: {
     type: String,
-    enum: ["pending", "completed"],
   },
   date: String,
+  customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer" },
 });
 module.exports = mongoose.model("ProductsOrder", ProductsOrderSchema);
