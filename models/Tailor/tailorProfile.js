@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Tailor = require("./tailor");
 const tailorProfileSchema = mongoose.Schema({
-  name: {
+  userName: {
     type: String,
   },
   description: {
@@ -9,12 +9,11 @@ const tailorProfileSchema = mongoose.Schema({
   },
   imgUrl: { type: String },
   joinDate: String,
-  languages: [String],
-  keyAreas: [String],
-  location: String,
-  gender: {
+  city: String,
+  serviceType: {
     type: String,
   },
+  phoneNumber: String,
   tailor: { type: mongoose.Schema.Types.ObjectId, ref: "Tailor" },
 });
 module.exports = mongoose.model("TailorProfile", tailorProfileSchema);

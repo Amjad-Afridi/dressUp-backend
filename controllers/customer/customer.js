@@ -1,13 +1,14 @@
 const mongoose = require("mongoose");
 const Customer = require("../../models/customer/customer.js");
-const Product = require("../../models/admin/products.js");
+const Products = require("../../models/admin/products.js");
 const ProductsCart = require("../../models/customer/productsCart");
 const Admin = require("../../models/admin/admin");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const productsOrder = require("../../models/customer/productsOrder.js");
+const ProductsOrder = require("../../models/customer/productsOrder.js");
 const CustomerProfile = require("../../models/customer/customerProfile.js");
 const Orders = require("../../models/admin/orders.js");
+
 // const { findOneAndUpdate } = require("../../models/admin/products.js");
 require("dotenv").config();
 
@@ -95,7 +96,7 @@ const createProfile = async (req, res) => {
     imgUrl: req.file.path,
     gender: req.body.gender,
     joinDate: currentDate,
-    location: req.body.location,
+    city: req.body.city,
     phoneNumber: req.body.phoneNumber,
     customer: req.userId,
   });
@@ -222,7 +223,7 @@ const createOrder = async (req, res) => {
   const date = new Date();
   const currentDate =
     date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
-  const order = await productsOrder.create({
+  const order = await ProductsOrder.create({
     products: req.body.products,
     totalPrice: req.body.totalPrice,
     orderStatus: "pending",
@@ -252,19 +253,37 @@ const createOrder = async (req, res) => {
     },
     { new: true }
   );
-  // console.log(orders.customerOrders);
-  // await Customer.findOneAndUpdate(
-  //   userId,
-  //   {
-  //     $push: {
-  //       orders: result._id,
-  //     },
-  //   },
-  //   { new: true }
-  // );
-  // await ProductsCart.findOneAndDelete({ userId });
 };
 
+const getPendingOrders = async (req, res) => {
+  ProductsOrder.find({
+    customer: req.userId,
+    orderStatus: "pending",
+  })
+    .populate({
+      path: "products.productId",
+      model: "Products",
+    })
+    .then((result) => {
+      res.status(200).json(result);
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err });
+    });
+};
+const getCompletedOrders = async (req, res) => {
+  ProductsOrder.find({ customer: req.userId, orderStatus: "completed" })
+    .populate({
+      path: "products.productId",
+      model: "Products",
+    })
+    .then((result) => {
+      res.status(200).json(result);
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err });
+    });
+};
 module.exports = {
   signup,
   login,
@@ -275,4 +294,6 @@ module.exports = {
   deleteItemFromCart,
   getCart,
   createOrder,
+  getPendingOrders,
+  getCompletedOrders,
 };

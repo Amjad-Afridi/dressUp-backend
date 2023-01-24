@@ -12,6 +12,9 @@ const {
   getByCategory,
   updateById,
   getCustomerOrders,
+  getPendingOrders,
+  getCompletedOrders,
+  getAllOrders,
 } = require("../controllers/admin/admin.js");
 
 router.post(
@@ -27,6 +30,9 @@ router.get("/products/search/:key", searchByName);
 router.delete("/products/:id", checkAdminAuth, deleteById);
 router.get("/products/:category", getByCategory);
 router.put("/products/:id", checkAdminAuth, updateById);
-router.get("/customer-orders", checkAdminAuth, getCustomerOrders);
+// router.get("/customer-orders", checkAdminAuth, getCustomerOrders);
+router.get("/pending-orders", checkAdminAuth, getPendingOrders);
+router.get("/completed-orders", checkAdminAuth, getCompletedOrders);
+router.get("/orders", checkAdminAuth, getAllOrders);
 
 module.exports = router;

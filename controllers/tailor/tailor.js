@@ -84,14 +84,12 @@ const createProfile = async (req, res) => {
     return res.json({ message: "Profile already exists" });
   }
   let profile = await TailorProfile.create({
-    name: req.body.name,
+    userName: req.body.name,
     description: req.body.description,
     imgUrl: req.file.path,
-    languages: req.body.languages,
-    keyAreas: req.body.keyAreas,
     joinDate: currentDate,
-    location: req.body.location,
-    gender: req.body.gender,
+    city: req.body.city,
+    phoneNumber: req.body.phoneNumber,
     tailor: req.userId,
   });
 
@@ -111,6 +109,7 @@ const updateProfile = (req, res) => {
       res.status(500).json({ error: error });
     });
 };
+
 const getProfile = async (req, res) => {
   TailorProfile.findOne({ tailor: req.userId })
     .then((result) => {
@@ -195,13 +194,6 @@ const deleteService = async (req, res) => {
   } else {
     return res.status(500).json({ err: "no service to delete !" });
   }
-  // await Tailor.findByIdAndUpdate(
-  //   req.userId,
-  //   {
-  //     $pull: { services: service._id },
-  //   },
-  //   { new: true }
-  // );
 };
 
 const updateService = (req, res) => {

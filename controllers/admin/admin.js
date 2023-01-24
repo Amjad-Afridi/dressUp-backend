@@ -1,8 +1,10 @@
 const mongoose = require("mongoose");
 const Products = require("../../models/admin/products");
+const ProductsOrder = require("../../models/customer/productsOrder");
 const Admin = require("../../models/admin/admin");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const Customer = require("../../models/customer/customer");
 const { findById } = require("../../models/admin/products");
 require("dotenv").config();
 
@@ -162,16 +164,61 @@ const getCustomerOrders = async (req, res) => {
       path: "cart",
     },
   });
+};
 
-  // .populate({
-  //   path: "customerOrders.cart",
-  // });
-  console.log(admin);
-  // if (admin.customerOrders.length > 0) {
-  //   res.status(200).json(admin.customerOrders);
-  // } else {
-  //   res.status(200).json({ err: "no customer orders found" });
-  // }
+const getPendingOrders = async (req, res) => {
+  ProductsOrder.find({
+    orderStatus: "pending",
+  })
+    .populate({
+      path: "products.productId",
+      model: "Products",
+    })
+    .populate({
+      path: "customer",
+      model: "Customer",
+    })
+    .then((result) => {
+      res.status(200).json(result);
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err });
+    });
+};
+const getCompletedOrders = async (req, res) => {
+  ProductsOrder.find({ orderStatus: "completed" })
+    .populate({
+      path: "products.productId",
+      model: "Products",
+    })
+    .populate({
+      path: "customer",
+      model: "Customer",
+    })
+    .then((result) => {
+      res.status(200).json(result);
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err });
+    });
+};
+
+const getAllOrders = async (req, res) => {
+  ProductsOrder.find({})
+    .populate({
+      path: "products.productId",
+      model: "Products",
+    })
+    .populate({
+      path: "customer",
+      model: "Customer",
+    })
+    .then((result) => {
+      res.status(200).json(result);
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err });
+    });
 };
 module.exports = {
   signup,
@@ -183,4 +230,7 @@ module.exports = {
   getByCategory,
   updateById,
   getCustomerOrders,
+  getPendingOrders,
+  getCompletedOrders,
+  getAllOrders,
 };

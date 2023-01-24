@@ -6,7 +6,7 @@ const CustomerProfileSchema = mongoose.Schema({
   },
   imgUrl: { type: String },
   joinDate: String,
-  location: String,
+  city: String,
   gender: {
     type: String,
   },
