@@ -84,7 +84,7 @@ const createProfile = async (req, res) => {
     return res.json({ message: "Profile already exists" });
   }
   let profile = await TailorProfile.create({
-    userName: req.body.name,
+    userName: req.body.userName,
     description: req.body.description,
     imgUrl: req.file.path,
     joinDate: currentDate,
