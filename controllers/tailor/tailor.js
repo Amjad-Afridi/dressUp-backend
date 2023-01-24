@@ -89,6 +89,7 @@ const createProfile = async (req, res) => {
     imgUrl: req.file.path,
     joinDate: currentDate,
     city: req.body.city,
+    serviceType: req.body.serviceType,
     phoneNumber: req.body.phoneNumber,
     tailor: req.userId,
   });
