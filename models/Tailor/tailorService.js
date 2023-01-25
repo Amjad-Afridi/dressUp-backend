@@ -5,6 +5,8 @@ const serviceSchema = mongoose.Schema({
   description: { type: String },
   price: { type: Number },
   imgUrl: { type: String },
+  city: String,
+  serviceType: String,
   tailor: { type: mongoose.Schema.Types.ObjectId, ref: "Tailor" },
   ratings: [
     {

@@ -165,6 +165,8 @@ const createService = async (req, res) => {
     description: req.body.description,
     imgUrl: req.file.path,
     price: req.body.price,
+    serviceType: req.body.serviceType,
+    city: req.body.city,
     tailor: req.userId,
   });
 
