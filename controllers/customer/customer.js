@@ -5,9 +5,11 @@ const ProductsCart = require("../../models/customer/productsCart");
 const Admin = require("../../models/admin/admin");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const TailorService = require("../../models/tailor/tailorService.js");
 const ProductsOrder = require("../../models/customer/productsOrder.js");
 const CustomerProfile = require("../../models/customer/customerProfile.js");
 const Orders = require("../../models/admin/orders.js");
+const OrderTailor = require("../../models/customer/orderTailor.js");
 
 // const { findOneAndUpdate } = require("../../models/admin/products.js");
 require("dotenv").config();
@@ -256,35 +258,81 @@ const createOrder = async (req, res) => {
 };
 
 const getPendingOrders = async (req, res) => {
-  ProductsOrder.find({
+  OrderTailor.find({
     customer: req.userId,
     orderStatus: "pending",
   })
     .populate({
-      path: "products.productId",
-      model: "Products",
+      path: "serviceId",
+      model: "TailorService",
     })
     .then((result) => {
       res.status(200).json(result);
     })
     .catch((err) => {
-      res.status(500).json({ error: err });
+      res.status(500).json({ err });
     });
 };
 const getCompletedOrders = async (req, res) => {
-  ProductsOrder.find({ customer: req.userId, orderStatus: "completed" })
+  OrderTailor.find({ customer: req.userId, orderStatus: "completed" })
     .populate({
-      path: "products.productId",
-      model: "Products",
+      path: "serviceId",
+      model: "TailorService",
     })
     .then((result) => {
       res.status(200).json(result);
     })
     .catch((err) => {
-      res.status(500).json({ error: err });
+      res.status(500).json({ err });
     });
 };
+
+const getNearByTailors = async (req, res) => {
+  const { city } = await CustomerProfile.findOne({
+    customer: req.userId,
+  }).select("city");
+  TailorService.find({ city: city })
+    .populate({
+      path: "tailor",
+      model: "Tailor",
+      select: "-password -__v",
+    })
+    .then((result) => {
+      res.status(200).json({
+        result,
+      });
+    })
+    .catch((err) => {
+      res.status(500).json({
+        err,
+      });
+    });
+};
+
+const orderTailor = async (req, res) => {
+  const date = new Date();
+  const currentDate =
+    date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
+  const order = await OrderTailor.create({
+    serviceId: req.body.serviceId,
+    orderStatus: "pending",
+    date: currentDate,
+    customer: req.userId,
+    price: req.body.price,
+    description: req.body.description,
+    pickUpLocation: req.body.pickUpLocation,
+    dropUpLocation: req.body.dropUpLocation,
+    measurementType: req.body.measurementType,
+  });
+  const result = await order.save();
+  if (result) {
+    res.status(200).json(result);
+  } else {
+    return res.status(500).json("no order created !!");
+  }
+};
 module.exports = {
+  getNearByTailors,
   signup,
   login,
   createProfile,
@@ -296,4 +344,5 @@ module.exports = {
   createOrder,
   getPendingOrders,
   getCompletedOrders,
+  orderTailor,
 };

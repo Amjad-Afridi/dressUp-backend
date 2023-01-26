@@ -13,6 +13,8 @@ const {
   createOrder,
   getCompletedOrders,
   getPendingOrders,
+  getNearByTailors,
+  orderTailor,
 } = require("../controllers/customer/customer");
 const checkCustomerAuth = require("../middleware/checkCustomerAuth");
 router.post("/signup", signup);
@@ -31,5 +33,8 @@ router.get("/cart", checkCustomerAuth, getCart);
 router.post("/order", checkCustomerAuth, createOrder);
 router.get("/completed-orders", checkCustomerAuth, getCompletedOrders);
 router.get("/pending-orders", checkCustomerAuth, getPendingOrders);
+router.get("/near-tailors", checkCustomerAuth, getNearByTailors);
+router.post("/order-tailor", checkCustomerAuth, orderTailor);
+
 
 module.exports = router;
