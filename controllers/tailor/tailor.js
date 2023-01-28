@@ -146,7 +146,7 @@ const getTailorById = async (req, res) => {
 
 const getAllTailors = (req, res) => {
   Tailor.find()
-    .select("-password")
+    .select("-password -__v")
     .then((result) => {
       res.status(200).json({
         result,
@@ -168,6 +168,7 @@ const createService = async (req, res) => {
     serviceType: req.body.serviceType,
     city: req.body.city,
     tailor: req.userId,
+    //expectedDelivery: 5 Days
   });
 
   await service.save((err, user) => {
@@ -208,7 +209,6 @@ const updateService = (req, res) => {
       res.status(500).json({ error: error });
     });
 };
-
 
 module.exports = {
   signup,

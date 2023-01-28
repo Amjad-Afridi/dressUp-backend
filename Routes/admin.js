@@ -11,7 +11,6 @@ const {
   deleteById,
   getByCategory,
   updateById,
-  getCustomerOrders,
   getPendingOrders,
   getCompletedOrders,
   getAllOrders,
@@ -30,9 +29,6 @@ router.get("/products/search/:key", searchByName);
 router.delete("/products/:id", checkAdminAuth, deleteById);
 router.get("/products/:category", getByCategory);
 router.put("/products/:id", checkAdminAuth, updateById);
-// router.get("/customer-orders", checkAdminAuth, getCustomerOrders);
-router.get("/pending-orders", checkAdminAuth, getPendingOrders);
-router.get("/completed-orders", checkAdminAuth, getCompletedOrders);
 router.get("/orders", checkAdminAuth, getAllOrders);
 
 module.exports = router;

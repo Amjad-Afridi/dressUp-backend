@@ -157,61 +157,56 @@ const updateById = (req, res) => {
       res.status(500).json({ error: error });
     });
 };
-const getCustomerOrders = async (req, res) => {
-  const admin = await Admin.findById(req.userId).populate({
-    path: "customerOrders",
-    populate: {
-      path: "cart",
-    },
-  });
-};
 
-const getPendingOrders = async (req, res) => {
-  ProductsOrder.find({
-    orderStatus: "pending",
-  })
-    .populate({
-      path: "products.productId",
-      model: "Products",
-    })
-    .populate({
-      path: "customer",
-      model: "Customer",
-    })
-    .then((result) => {
-      res.status(200).json(result);
-    })
-    .catch((err) => {
-      res.status(500).json({ error: err });
-    });
-};
-const getCompletedOrders = async (req, res) => {
-  ProductsOrder.find({ orderStatus: "completed" })
-    .populate({
-      path: "products.productId",
-      model: "Products",
-    })
-    .populate({
-      path: "customer",
-      model: "Customer",
-    })
-    .then((result) => {
-      res.status(200).json(result);
-    })
-    .catch((err) => {
-      res.status(500).json({ error: err });
-    });
-};
+
+// const getPendingOrders = async (req, res) => {
+//   ProductsOrder.find({
+//     orderStatus: "pending",
+//   })
+//     .populate({
+//       path: "products.productId",
+//       model: "Products",
+//     })
+//     .populate({
+//       path: "customer",
+//       model: "Customer",
+//     })
+//     .then((result) => {
+//       res.status(200).json(result);
+//     })
+//     .catch((err) => {
+//       res.status(500).json({ error: err });
+//     });
+// };
+// const getCompletedOrders = async (req, res) => {
+//   ProductsOrder.find({ orderStatus: "completed" })
+//     .populate({
+//       path: "products.productId",
+//       model: "Products",
+//     })
+//     .populate({
+//       path: "customer",
+//       model: "Customer",
+//     })
+//     .then((result) => {
+//       res.status(200).json(result);
+//     })
+//     .catch((err) => {
+//       res.status(500).json({ error: err });
+//     });
+// };
 
 const getAllOrders = async (req, res) => {
   ProductsOrder.find({})
     .populate({
       path: "products.productId",
       model: "Products",
+      select: "-__v",
     })
     .populate({
       path: "customer",
       model: "Customer",
+      select: "-password -__v",
     })
     .then((result) => {
       res.status(200).json(result);
@@ -229,8 +224,5 @@ module.exports = {
   deleteById,
   getByCategory,
   updateById,
-  getCustomerOrders,
-  getPendingOrders,
-  getCompletedOrders,
   getAllOrders,
 };

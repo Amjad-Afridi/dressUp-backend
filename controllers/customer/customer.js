@@ -1,26 +1,19 @@
 const mongoose = require("mongoose");
 const Customer = require("../../models/customer/customer.js");
 const Products = require("../../models/admin/products.js");
-const ProductsCart = require("../../models/customer/productsCart");
 const Admin = require("../../models/admin/admin");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const TailorService = require("../../models/tailor/tailorService.js");
 const ProductsOrder = require("../../models/customer/productsOrder.js");
 const CustomerProfile = require("../../models/customer/customerProfile.js");
-const Orders = require("../../models/admin/orders.js");
 const OrderTailor = require("../../models/customer/orderTailor.js");
-
-// const { findOneAndUpdate } = require("../../models/admin/products.js");
-require("dotenv").config();
-
 const signup = (req, res) => {
   bcrypt.hash(req.body.password, 10, async (err, hash) => {
     if (err) {
       return res.status(200).json({ error: err });
     } else {
       const CustomerExits = await Customer.findOne({ email: req.body.email });
-
       if (!CustomerExits) {
         Customer.create({
           name: req.body.name,
@@ -228,7 +221,8 @@ const createOrder = async (req, res) => {
   const order = await ProductsOrder.create({
     products: req.body.products,
     totalPrice: req.body.totalPrice,
-    orderStatus: "pending",
+    orderStatus: "submitted",
+    customerLocation: req.body.customerLocation,
     date: currentDate,
     customer: req.userId,
   });
@@ -238,23 +232,6 @@ const createOrder = async (req, res) => {
   } else {
     return res.status(500).json("no order created !!");
   }
-
-  const orders = await Orders.findOne({});
-  if (!orders) {
-    await Orders.create({
-      customerOrders: result,
-    });
-    return;
-  }
-  await Orders.findOneAndUpdate(
-    orders._id,
-    {
-      $push: {
-        customerOrders: result,
-      },
-    },
-    { new: true }
-  );
 };
 
 const getPendingOrders = async (req, res) => {
@@ -331,7 +308,34 @@ const orderTailor = async (req, res) => {
     return res.status(500).json("no order created !!");
   }
 };
+const allCustomers = async (req, res) => {
+  Customer.find({})
+    .select("-password -__v")
+    .then((customers) => {
+      res.status(200).json(customers);
+    })
+    .catch((err) => {
+      res.status(500).json(err.message);
+    });
+};
+const rateTailorService = async (req, res) => {
+  const serviceId = req.body.serviceId;
+  const rating = req.body.rating;
+  TailorService.findById(serviceId)
+    .then((service) => {
+      service.customerRatings.push({ rating: rating, customerId: req.userId });
+      service.totalRatings += rating;
+      service.save();
+    })
+    .then(() => {
+      res.status(200).send({ message: "Rating added successfully!" });
+    })
+    .catch((error) => {
+      res.status(400).send({ error: error.message });
+    });
+};
 module.exports = {
+  rateTailorService,
   getNearByTailors,
   signup,
   login,
@@ -345,4 +349,5 @@ module.exports = {
   getPendingOrders,
   getCompletedOrders,
   orderTailor,
+  allCustomers,
 };

@@ -70,8 +70,18 @@ const login = (req, res) => {
     })
     .catch((err) => res.status(500).json({ err: err }));
 };
-
+const allRiders = async (req, res) => {
+  Rider.find({})
+    .select("-password -__v")
+    .then((customers) => {
+      res.status(200).json(customers);
+    })
+    .catch((err) => {
+      res.status(500).json(err.message);
+    });
+};
 module.exports = {
   signup,
   login,
+  allRiders,
 };

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Customer = require("../customer/customer");
 const Tailor = require("./tailor");
 const serviceSchema = mongoose.Schema({
   name: { type: String },
@@ -8,11 +9,12 @@ const serviceSchema = mongoose.Schema({
   city: String,
   serviceType: String,
   tailor: { type: mongoose.Schema.Types.ObjectId, ref: "Tailor" },
-  ratings: [
+  customerRatings: [
     {
-      stars: Number,
-      postedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Customer" },
+      rating: Number,
+      customerId: { type: mongoose.Schema.Types.ObjectId, ref: "Customer" },
     },
   ],
+  totalRatings: { type: Number, default: 0 },
 });
 module.exports = mongoose.model("TailorService", serviceSchema);
