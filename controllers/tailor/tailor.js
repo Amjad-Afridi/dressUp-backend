@@ -89,6 +89,7 @@ const createProfile = async (req, res) => {
     imgUrl: req.file.path,
     joinDate: currentDate,
     city: req.body.city,
+    shopLocation: req.body.shopLocation,
     serviceType: req.body.serviceType,
     phoneNumber: req.body.phoneNumber,
     tailor: req.userId,
@@ -168,7 +169,7 @@ const createService = async (req, res) => {
     serviceType: req.body.serviceType,
     city: req.body.city,
     tailor: req.userId,
-    //expectedDelivery: 5 Days
+    expectedDelivery: "five days",
   });
 
   await service.save((err, user) => {

@@ -13,6 +13,7 @@ const tailorProfileSchema = mongoose.Schema({
   serviceType: {
     type: String,
   },
+  shopLocation: String,
   phoneNumber: String,
   tailor: { type: mongoose.Schema.Types.ObjectId, ref: "Tailor" },
 });

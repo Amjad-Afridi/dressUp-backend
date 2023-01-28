@@ -287,6 +287,12 @@ const getNearByTailors = async (req, res) => {
 };
 
 const orderTailor = async (req, res) => {
+  const tailorId = await TailorService.findById(req.body.serviceId).select(
+    "tailor"
+  );
+  const tailorShop = await TailorProfile.findById(tailorId).select(
+    "tailorShop"
+  );
   const date = new Date();
   const currentDate =
     date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
@@ -298,7 +304,7 @@ const orderTailor = async (req, res) => {
     price: req.body.price,
     description: req.body.description,
     pickUpLocation: req.body.pickUpLocation,
-    dropUpLocation: req.body.dropUpLocation,
+    dropUpLocation: tailorShop,
     measurementType: req.body.measurementType,
   });
   const result = await order.save();
