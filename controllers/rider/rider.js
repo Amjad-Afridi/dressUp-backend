@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const Rider = require("../../models/rider/rider");
+const RiderProfile = require("../../models/rider/riderProfile");
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -80,8 +82,52 @@ const allRiders = async (req, res) => {
       res.status(500).json(err.message);
     });
 };
+
+const createProfile = async (req, res) => {
+  const date = new Date();
+  const currentDate =
+    date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
+
+  const profileExists = await RiderProfile.findOne({ rider: req.userId });
+  if (profileExists) {
+    return res.json({ message: "profile already exists" });
+  }
+
+  let profile = await RiderProfile.create({
+    userName: req.body.userName,
+    imgUrl: req.file.path,
+    gender: req.body.gender,
+    joinDate: currentDate,
+    city: req.body.city,
+    phoneNumber: req.body.phoneNumber,
+    rider: req.userId,
+  });
+
+  await profile.save((err, newProfile) => {
+    if (err) return console.error(err);
+    res.json(newProfile);
+  });
+};
+
+const getProfile = async (req, res) => {
+  RiderProfile.findOne({ rider: req.userId })
+    .select("-rider -__v")
+    .then((result) => {
+      res.status(200).json({
+        result,
+      });
+    })
+    .catch((err) => {
+      res.status(500).json({
+        err,
+      });
+    });
+};
+
 module.exports = {
   signup,
   login,
   allRiders,
+  createProfile,
+  getProfile,
 };

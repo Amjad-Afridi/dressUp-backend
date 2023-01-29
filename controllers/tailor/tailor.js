@@ -169,7 +169,7 @@ const createService = async (req, res) => {
     serviceType: req.body.serviceType,
     city: req.body.city,
     tailor: req.userId,
-    expectedDelivery: "five days",
+    expectedDelivery: req.body.expectedDelivery,
   });
 
   await service.save((err, user) => {

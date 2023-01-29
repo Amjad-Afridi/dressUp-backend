@@ -232,12 +232,19 @@ const allCustomers = async (req, res) => {
 const rateTailorService = async (req, res) => {
   const serviceId = req.body.serviceId;
   const rating = req.body.rating;
-  TailorService.findById(serviceId)
-    .then((service) => {
-      service.customerRatings.push({ rating: rating, customerId: req.userId });
-      service.totalRatings += rating;
-      service.save();
-    })
+  const service = await TailorService.findById(serviceId);
+  service.customerRatings.push({ rating: rating, customerId: req.userId });
+  await service.save();
+  var avgRatings = 0;
+  service.customerRatings.map((userRatings) => {
+    avgRatings += userRatings.rating;
+  });
+  service.totalRatings = Math.round(
+    avgRatings / service.customerRatings.length
+  );
+  service.numberOfTimesRated = service.customerRatings.length;
+  await service
+    .save()
     .then(() => {
       res.status(200).send({ message: "Rating added successfully!" });
     })

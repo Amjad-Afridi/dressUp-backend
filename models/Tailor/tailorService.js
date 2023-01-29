@@ -16,6 +16,7 @@ const serviceSchema = mongoose.Schema({
     },
   ],
   totalRatings: { type: Number, default: 0 },
+  numberOfTimesRated: { type: Number, default: 0 },
   expectedDelivery: String,
 });
 module.exports = mongoose.model("TailorService", serviceSchema);
