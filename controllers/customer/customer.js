@@ -192,34 +192,32 @@ const getNearByTailors = async (req, res) => {
 };
 
 const orderTailor = async (req, res) => {
-  const tailorId = await TailorService.findById(req.body.serviceId).select(
+  const { tailor } = await TailorService.findById(req.body.serviceId).select(
     "tailor"
   );
-  console.log(tailorId);
-  const shopLocation = await TailorProfile.findById(tailorId).select(
-    "shopLocation"
-  );
-  console.log(shopLocation);
-  // const date = new Date();
-  // const currentDate =
-  //   date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
-  // const order = await OrderTailor.create({
-  //   serviceId: req.body.serviceId,
-  //   orderStatus: "pending",
-  //   date: currentDate,
-  //   customer: req.userId,
-  //   price: req.body.price,
-  //   description: req.body.description,
-  //   pickUpLocation: req.body.pickUpLocation,
-  //   dropUpLocation: shopLocation,
-  //   measurementType: req.body.measurementType,
-  // });
-  // const result = await order.save();
-  // if (result) {
-  //   res.status(200).json(result);
-  // } else {
-  //   return res.status(500).json("no order created !!");
-  // }
+  const { shopLocation } = await TailorProfile.findOne({
+    tailor: tailor,
+  }).select("shopLocation");
+  const date = new Date();
+  const currentDate =
+    date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
+  const order = await OrderTailor.create({
+    serviceId: req.body.serviceId,
+    orderStatus: "pending",
+    date: currentDate,
+    customer: req.userId,
+    price: req.body.price,
+    description: req.body.description,
+    pickUpLocation: req.body.pickUpLocation,
+    dropUpLocation: shopLocation,
+    measurementType: req.body.measurementType,
+  });
+  const result = await order.save();
+  if (result) {
+    res.status(200).json(result);
+  } else {
+    return res.status(500).json("no order created !!");
+  }
 };
 const allCustomers = async (req, res) => {
   Customer.find({})
