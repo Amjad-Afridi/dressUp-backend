@@ -4,6 +4,7 @@ const Products = require("../../models/admin/products.js");
 const Admin = require("../../models/admin/admin");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const TailorProfile = require("../../models/tailor/tailorProfile.js");
 const TailorService = require("../../models/tailor/tailorService.js");
 const ProductsOrder = require("../../models/customer/productsOrder.js");
 const CustomerProfile = require("../../models/customer/customerProfile.js");
@@ -126,94 +127,6 @@ const getProfile = async (req, res) => {
     });
 };
 
-const addToCart = async (req, res) => {
-  const { productId, quantity } = req.body;
-  product = await Product.findById(productId);
-  var cart = await ProductsCart.findOne({ customer: req.userId });
-  const price = product.price;
-  const name = product.name;
-  const imgUrl = product.imgUrl;
-  var bill;
-
-  if (!product) {
-    res.status(404).send({ message: "product not found" });
-    return;
-  }
-  if (cart) {
-    const productIndex = cart.products.findIndex(
-      (product) => product.productId == productId
-    );
-    if (productIndex > -1) {
-      let product = cart.products[productIndex];
-      product.quantity += quantity;
-
-      cart.bill = cart.products.reduce((acc, curr) => {
-        return acc + curr.quantity * curr.price;
-      }, 0);
-      cart.products[productIndex] = product;
-      await cart.save();
-      res.status(200).send(cart);
-    } else {
-      cart.products.push({ productId, imgUrl, name, quantity, price });
-      cart.bill = cart.products.reduce((acc, curr) => {
-        return acc + curr.quantity * curr.price;
-      }, 0);
-
-      await cart.save();
-      res.status(200).send(cart);
-    }
-  } else {
-    cart = await ProductsCart.create({
-      customer: req.userId,
-      products: [{ productId, name, price, imgUrl, quantity }],
-      bill: price * quantity,
-    });
-  }
-};
-
-const deleteItemFromCart = async (req, res) => {
-  const productId = req.params.id;
-  var product = await Product.findById(productId);
-  try {
-    var cart = await ProductsCart.findOne({ customer: req.userId });
-    productIndex = cart.products.findIndex(
-      (product) => product.productId == productId
-    );
-    if (productIndex > -1) {
-      let product = cart.products[productIndex];
-      cart.bill -= product.quantity * product.price;
-      if (cart.bill < 0) {
-        cart.bill = 0;
-      }
-      cart.products.splice(productIndex, 1);
-      cart.bill = cart.products.reduce((acc, curr) => {
-        return acc + curr.quantity * curr.price;
-      }, 0);
-      cart = await cart.save();
-      res.status(200).send(cart);
-    } else {
-      res.status(404).send("item not found");
-    }
-  } catch (error) {
-    console.log(error);
-    res.status(400).send();
-  }
-};
-
-const getCart = async (req, res) => {
-  const userId = req.userId;
-  try {
-    const cart = await ProductsCart.findOne({ userId });
-    if (cart && cart.products.length > 0) {
-      res.status(200).json(cart);
-    } else {
-      res.send(null);
-    }
-  } catch (error) {
-    res.status(500).json();
-  }
-};
-
 const createOrder = async (req, res) => {
   const date = new Date();
   const currentDate =
@@ -239,12 +152,8 @@ const getPendingOrders = async (req, res) => {
     customer: req.userId,
     orderStatus: "pending",
   })
-    .populate({
-      path: "serviceId",
-      model: "TailorService",
-    })
     .then((result) => {
-      res.status(200).json(result);
+      res.status(200).json({ result: result });
     })
     .catch((err) => {
       res.status(500).json({ err });
@@ -252,12 +161,8 @@ const getPendingOrders = async (req, res) => {
 };
 const getCompletedOrders = async (req, res) => {
   OrderTailor.find({ customer: req.userId, orderStatus: "completed" })
-    .populate({
-      path: "serviceId",
-      model: "TailorService",
-    })
     .then((result) => {
-      res.status(200).json(result);
+      res.status(200).json({ result: result });
     })
     .catch((err) => {
       res.status(500).json({ err });
@@ -290,29 +195,31 @@ const orderTailor = async (req, res) => {
   const tailorId = await TailorService.findById(req.body.serviceId).select(
     "tailor"
   );
-  const tailorShop = await TailorProfile.findById(tailorId).select(
-    "tailorShop"
+  console.log(tailorId);
+  const shopLocation = await TailorProfile.findById(tailorId).select(
+    "shopLocation"
   );
-  const date = new Date();
-  const currentDate =
-    date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
-  const order = await OrderTailor.create({
-    serviceId: req.body.serviceId,
-    orderStatus: "pending",
-    date: currentDate,
-    customer: req.userId,
-    price: req.body.price,
-    description: req.body.description,
-    pickUpLocation: req.body.pickUpLocation,
-    dropUpLocation: tailorShop,
-    measurementType: req.body.measurementType,
-  });
-  const result = await order.save();
-  if (result) {
-    res.status(200).json(result);
-  } else {
-    return res.status(500).json("no order created !!");
-  }
+  console.log(shopLocation);
+  // const date = new Date();
+  // const currentDate =
+  //   date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
+  // const order = await OrderTailor.create({
+  //   serviceId: req.body.serviceId,
+  //   orderStatus: "pending",
+  //   date: currentDate,
+  //   customer: req.userId,
+  //   price: req.body.price,
+  //   description: req.body.description,
+  //   pickUpLocation: req.body.pickUpLocation,
+  //   dropUpLocation: shopLocation,
+  //   measurementType: req.body.measurementType,
+  // });
+  // const result = await order.save();
+  // if (result) {
+  //   res.status(200).json(result);
+  // } else {
+  //   return res.status(500).json("no order created !!");
+  // }
 };
 const allCustomers = async (req, res) => {
   Customer.find({})
@@ -348,9 +255,6 @@ module.exports = {
   createProfile,
   updateProfile,
   getProfile,
-  addToCart,
-  deleteItemFromCart,
-  getCart,
   createOrder,
   getPendingOrders,
   getCompletedOrders,
