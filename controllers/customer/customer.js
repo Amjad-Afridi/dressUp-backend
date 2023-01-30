@@ -204,7 +204,7 @@ const orderTailor = async (req, res) => {
   const order = await OrderTailor.create({
     serviceId: req.body.serviceId,
     tailor: req.body.tailor,
-    orderStatus: "pending",
+    orderStatus: "waiting-for-rider",
     date: currentDate,
     customer: req.userId,
     price: req.body.price,

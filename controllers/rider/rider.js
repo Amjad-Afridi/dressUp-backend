@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 const Rider = require("../../models/rider/rider");
 const RiderProfile = require("../../models/rider/riderProfile");
-
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
+const OrderTailor = require("../../models/customer/orderTailor");
+const RiderCompletedOrders = require("../../models/rider/RiderCompletedOrders");
 
 const signup = (req, res) => {
   bcrypt.hash(req.body.password, 10, async (err, hash) => {
@@ -124,10 +124,53 @@ const getProfile = async (req, res) => {
     });
 };
 
+const getAvailableOrders = async (req, res) => {
+  OrderTailor.find({ orderStatus: "waiting-for-rider" })
+    .then((result) => {
+      res.status(200).json({ result: result });
+    })
+    .catch((err) => {
+      res.status(500).json({ err });
+    });
+};
+
+const acceptOrder = async (req, res) => {
+  OrderTailor.findById(req.params.id)
+    .then((result) => {
+      result.orderStatus = "rider-accepted";
+      result.rider = req.userId;
+      result.save();
+      res.status(200).json({ result: result });
+    })
+    .catch((err) => {
+      res.status(500).json({ err });
+    });
+};
+
+const deliveredToTailor = async (req, res) => {
+  OrderTailor.findById(req.params.id)
+    .then((result) => {
+      result.orderStatus = "pending";
+      result.save();
+      res.status(200).json({ result: result });
+    })
+    .catch((err) => {
+      res.status(500).json({ err });
+    });
+
+  const order = await RiderCompletedOrders.create({
+    order: req.params.id,
+    rider: req.userId,
+  });
+  order.save();
+};
 module.exports = {
   signup,
   login,
   allRiders,
   createProfile,
   getProfile,
+  getAvailableOrders,
+  acceptOrder,
+  deliveredToTailor,
 };

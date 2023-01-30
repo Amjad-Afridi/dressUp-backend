@@ -233,6 +233,20 @@ const getCompletedOrders = async (req, res) => {
     });
 };
 
+const completeOrder = async (req, res) => {
+  OrderTailor.findById(req.params.id)
+    .then((result) => {
+      result.orderStatus = "waiting-for-rider";
+      result.save();
+      // var exchangeLocation = result.pickUpLocation
+      res.status(200).json({ result: result });
+    })
+    .catch((err) => {
+      res.status(500).json({ err });
+    });
+  await OrderTailor.findByIdAndUpdate(req.params.id, { $unset: { rider: "" } });
+};
+
 module.exports = {
   getPendingOrders,
   getCompletedOrders,
@@ -247,4 +261,5 @@ module.exports = {
   getTailorServices,
   deleteService,
   updateService,
+  completeOrder,
 };
