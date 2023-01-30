@@ -203,6 +203,7 @@ const orderTailor = async (req, res) => {
     date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
   const order = await OrderTailor.create({
     serviceId: req.body.serviceId,
+    tailor: req.body.tailor,
     orderStatus: "pending",
     date: currentDate,
     customer: req.userId,

@@ -13,6 +13,8 @@ const {
   createService,
   deleteService,
   updateService,
+  getCompletedOrders,
+  getPendingOrders,
 } = require("../controllers/tailor/tailor");
 const checkTailorAuth = require("../middleware/checkTailorAuth");
 router.post("/signup", signup);
@@ -29,6 +31,8 @@ router.get("/", getAllTailors);
 router.get("/service", checkTailorAuth, getTailorServices);
 router.delete("/service/:id", checkTailorAuth, deleteService);
 router.put("/service/:id", checkTailorAuth, updateService);
+router.get("/pending-orders", checkTailorAuth, getPendingOrders);
+router.get("/completed-orders", checkTailorAuth, getCompletedOrders);
 router.get("/:id", getTailorById);
 router.post(
   "/service",

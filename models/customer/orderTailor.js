@@ -9,6 +9,7 @@ const orderTailorSchema = mongoose.Schema({
   },
   date: String,
   customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer" },
+  tailor: { type: mongoose.Schema.Types.ObjectId, ref: "Tailor" },
   pickUpLocation: String,
   dropUpLocation: String,
   price: String,

@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Tailor = require("../../models/tailor/tailor.js");
 const TailorProfile = require("../../models/tailor/tailorProfile");
 const TailorService = require("../../models/tailor/tailorService.js");
+const OrderTailor = require("../../models/customer/orderTailor");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -210,8 +211,31 @@ const updateService = (req, res) => {
       res.status(500).json({ error: error });
     });
 };
+const getPendingOrders = async (req, res) => {
+  OrderTailor.find({
+    tailor: req.userId,
+    orderStatus: "pending",
+  })
+    .then((result) => {
+      res.status(200).json({ result: result });
+    })
+    .catch((err) => {
+      res.status(500).json({ err });
+    });
+};
+const getCompletedOrders = async (req, res) => {
+  OrderTailor.find({ tailor: req.userId, orderStatus: "completed" })
+    .then((result) => {
+      res.status(200).json({ result: result });
+    })
+    .catch((err) => {
+      res.status(500).json({ err });
+    });
+};
 
 module.exports = {
+  getPendingOrders,
+  getCompletedOrders,
   signup,
   login,
   createProfile,
