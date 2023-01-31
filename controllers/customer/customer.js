@@ -230,6 +230,7 @@ const allCustomers = async (req, res) => {
       res.status(500).json(err.message);
     });
 };
+
 const rateTailorService = async (req, res) => {
   const serviceId = req.body.serviceId;
   const rating = req.body.rating;
@@ -253,6 +254,24 @@ const rateTailorService = async (req, res) => {
       res.status(400).send({ error: error.message });
     });
 };
+
+const completeOrder = async (req, res) => {
+  OrderTailor.findById(req.params.id)
+    .then((result) => {
+      if (result.orderStatus === "delivered-to-customer") {
+        result.orderStatus = "completed";
+        result.save();
+        res.status(200).json({ result: result });
+      } else {
+        return res.status(400).json({
+          message: "you are not authorized to complete the order at the moment",
+        });
+      }
+    })
+    .catch((err) => {
+      res.status(500).json({ message: "no order found to complete" });
+    });
+};
 module.exports = {
   rateTailorService,
   getNearByTailors,
@@ -264,6 +283,7 @@ module.exports = {
   createOrder,
   getPendingOrders,
   getCompletedOrders,
+  completeOrder,
   orderTailor,
   allCustomers,
 };

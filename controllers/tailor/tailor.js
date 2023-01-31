@@ -236,15 +236,26 @@ const getCompletedOrders = async (req, res) => {
 const completeOrder = async (req, res) => {
   OrderTailor.findById(req.params.id)
     .then((result) => {
-      result.orderStatus = "waiting-for-rider";
-      result.save();
-      // var exchangeLocation = result.pickUpLocation
-      res.status(200).json({ result: result });
+      if (result.orderStatus === "rider-accepted") {
+        result.orderStatus = "waiting-for-rider";
+        var exchangeLocation = result.pickUpLocation;
+        result.pickUpLocation = result.dropUpLocation;
+        result.dropUpLocation = exchangeLocation;
+        result.save();
+        res.status(200).json({ result: result });
+      } else {
+        return res
+          .status(400)
+          .json({ message: "you are not authorized to do this operation" });
+      }
     })
     .catch((err) => {
       res.status(500).json({ err });
     });
-  await OrderTailor.findByIdAndUpdate(req.params.id, { $unset: { rider: "" } });
+  await OrderTailor.findByIdAndUpdate(req.params.id, {
+    $unset: { rider: "" },
+    new: true,
+  });
 };
 
 module.exports = {

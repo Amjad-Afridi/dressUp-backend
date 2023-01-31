@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const OrderTailor = require("../../models/customer/orderTailor");
 const RiderCompletedOrders = require("../../models/rider/RiderCompletedOrders");
+const { response } = require("express");
 
 const signup = (req, res) => {
   bcrypt.hash(req.body.password, 10, async (err, hash) => {
@@ -130,7 +131,7 @@ const getAvailableOrders = async (req, res) => {
       res.status(200).json({ result: result });
     })
     .catch((err) => {
-      res.status(500).json({ err });
+      res.status(500).json({ message: "no orders found " });
     });
 };
 
@@ -148,11 +149,17 @@ const acceptOrder = async (req, res) => {
 };
 
 const deliveredToTailor = async (req, res) => {
-  OrderTailor.findById(req.params.id)
+  OrderTailor.findOne({ _id: req.params.id, rider: req.userId })
     .then((result) => {
-      result.orderStatus = "pending";
-      result.save();
-      res.status(200).json({ result: result });
+      if (result.orderStatus === "rider-accepted") {
+        result.orderStatus = "pending";
+        result.save();
+        res.status(200).json({ result: result });
+      } else {
+        return res
+          .status(400)
+          .json({ message: "you are not authorized to do this operation" });
+      }
     })
     .catch((err) => {
       res.status(500).json({ err });
@@ -164,6 +171,60 @@ const deliveredToTailor = async (req, res) => {
   });
   order.save();
 };
+
+const deliveredToCustomer = async (req, res) => {
+  OrderTailor.findOne({ _id: req.params.id, rider: req.userId })
+    .then((result) => {
+      if (result.orderStatus === "rider-accepted") {
+        result.orderStatus = "delivered-to-customer";
+        var exchangeLocation = result.pickUpLocation;
+        result.pickUpLocation = result.dropUpLocation;
+        result.dropUpLocation = exchangeLocation;
+        result.save();
+        res
+          .status(200)
+          .json({ message: "rider completed order", result: result });
+      } else {
+        return res
+          .status(400)
+          .json({ message: "you are not authorized to do this operation" });
+      }
+    })
+    .catch((err) => {
+      res.status(500).json({ err });
+    });
+
+  const order = await RiderCompletedOrders.create({
+    order: req.params.id,
+    rider: req.userId,
+  });
+  order.save();
+};
+
+const deliveryInProgress = async (req, res) => {
+  OrderTailor.find({ rider: req.userId, orderStatus: "rider-accepted" })
+    .then((result) => {
+      res.status(200).json({ result: result });
+    })
+    .catch((err) => {
+      res
+        .status(500)
+        .json({ message: "no in-progress orders found for this rider" });
+    });
+};
+const completedDeliveries = async (req, res) => {
+  RiderCompletedOrders.find({ rider: req.userId })
+    .populate({ path: "order", model: "OrderTailor" })
+    .select("order")
+    .then((result) => {
+      res.status(200).json({ result: result });
+    })
+    .catch((err) => {
+      res
+        .status(500)
+        .json({ message: "no completed orders found for this rider" });
+    });
+};
 module.exports = {
   signup,
   login,
@@ -173,4 +234,7 @@ module.exports = {
   getAvailableOrders,
   acceptOrder,
   deliveredToTailor,
+  deliveredToCustomer,
+  deliveryInProgress,
+  completedDeliveries,
 };
