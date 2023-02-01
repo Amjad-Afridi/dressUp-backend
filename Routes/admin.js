@@ -30,5 +30,7 @@ router.delete("/products/:id", checkAdminAuth, deleteById);
 router.get("/products/:category", getByCategory);
 router.put("/products/:id", checkAdminAuth, updateById);
 router.get("/orders", checkAdminAuth, getAllOrders);
+router.get("/pending-orders", checkAdminAuth, getPendingOrders);
+router.get("/completed-orders", checkAdminAuth, getCompletedOrders);
 
 module.exports = router;

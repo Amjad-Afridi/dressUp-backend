@@ -9,6 +9,7 @@ const TailorService = require("../../models/tailor/tailorService.js");
 const ProductsOrder = require("../../models/customer/productsOrder.js");
 const CustomerProfile = require("../../models/customer/customerProfile.js");
 const OrderTailor = require("../../models/customer/orderTailor.js");
+const PendingOrders = require("../../models/customer/pendingOrders.js");
 const signup = (req, res) => {
   bcrypt.hash(req.body.password, 10, async (err, hash) => {
     if (err) {
@@ -134,7 +135,7 @@ const createOrder = async (req, res) => {
   const order = await ProductsOrder.create({
     products: req.body.products,
     totalPrice: req.body.totalPrice,
-    orderStatus: "submitted",
+    orderStatus: "pending",
     customerLocation: req.body.customerLocation,
     date: currentDate,
     customer: req.userId,
@@ -148,12 +149,13 @@ const createOrder = async (req, res) => {
 };
 
 const getPendingOrders = async (req, res) => {
-  OrderTailor.find({
+  PendingOrders.find({
     customer: req.userId,
-    orderStatus: "pending",
   })
+    .populate({ path: "order", model: "OrderTailor" })
+    .select("order -_id")
     .then((result) => {
-      res.status(200).json({ result: result });
+      res.status(200).json({ result });
     })
     .catch((err) => {
       res.status(500).json({ err });
@@ -219,6 +221,11 @@ const orderTailor = async (req, res) => {
   } else {
     return res.status(500).json("no order created !!");
   }
+
+  await PendingOrders.create({
+    order: result._id,
+    customer: req.userId,
+  });
 };
 const allCustomers = async (req, res) => {
   Customer.find({})
@@ -271,6 +278,8 @@ const completeOrder = async (req, res) => {
     .catch((err) => {
       res.status(500).json({ message: "no order found to complete" });
     });
+
+  await PendingOrders.findOneAndDelete({ order: req.params.id });
 };
 module.exports = {
   rateTailorService,
