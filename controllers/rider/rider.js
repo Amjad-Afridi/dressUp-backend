@@ -6,6 +6,8 @@ const jwt = require("jsonwebtoken");
 const OrderTailor = require("../../models/customer/orderTailor");
 const RiderCompletedOrders = require("../../models/rider/RiderCompletedOrders");
 const { response } = require("express");
+const CustomerProfile = require("../../models/customer/customerProfile");
+const TailorProfile = require("../../models/tailor/tailorProfile");
 
 const signup = (req, res) => {
   bcrypt.hash(req.body.password, 10, async (err, hash) => {
@@ -126,13 +128,27 @@ const getProfile = async (req, res) => {
 };
 
 const getAvailableOrders = async (req, res) => {
-  OrderTailor.find({ orderStatus: "waiting-for-rider" })
-    .then((result) => {
-      res.status(200).json({ result: result });
+  var tailorCity;
+  var customerCity;
+  const availableOrders = await OrderTailor.find({
+    orderStatus: "waiting-for-rider",
+  });
+  const result = await Promise.all(
+    availableOrders.filter(async (availableOrder) => {
+      customerCity = await CustomerProfile.findOne({
+        customer: availableOrder.customer,
+      }).select("city");
+
+      tailorCity = await TailorProfile.findOne({
+        tailor: availableOrder.tailor,
+      }).select("city");
+
+      if (customerCity && tailorCity && customerCity.city == tailorCity.city) {
+        return availableOrder;
+      }
     })
-    .catch((err) => {
-      res.status(500).json({ message: "no orders found " });
-    });
+  );
+  res.status(200).json({ result });
 };
 
 const acceptOrder = async (req, res) => {

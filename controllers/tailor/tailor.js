@@ -3,9 +3,9 @@ const Tailor = require("../../models/tailor/tailor.js");
 const TailorProfile = require("../../models/tailor/tailorProfile");
 const TailorService = require("../../models/tailor/tailorService.js");
 const OrderTailor = require("../../models/customer/orderTailor");
+const ProjectDesigns = require("../../models/tailor/projectDesigns.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
 
 const signup = (req, res) => {
   bcrypt.hash(req.body.password, 10, async (err, hash) => {
@@ -258,7 +258,44 @@ const completeOrder = async (req, res) => {
   });
 };
 
+const uploadImage = async (req, res) => {
+  ProjectDesigns.create({
+    imgUrl: req.file.path,
+    tailor: req.userId,
+  })
+    .then((result) => {
+      res.status(200).json({ result });
+    })
+    .catch((err) => {
+      res.status(500).json({ err });
+    });
+};
+
+const viewGallery = async (req, res) => {
+  ProjectDesigns.find({ tailor: req.userId })
+    .select("-__v -tailor")
+    .then((result) => {
+      res.status(200).json({ result });
+    })
+    .catch((err) => {
+      res.status(500).json({ err });
+    });
+};
+
+const deleteImage = async (req, res) => {
+  ProjectDesigns.findByIdAndDelete(req.params.id)
+    .then((result) => {
+      res.status(200).json({ result });
+    })
+    .catch((err) => {
+      res.status(500).json({ err });
+    });
+};
+
 module.exports = {
+  uploadImage,
+  deleteImage,
+  viewGallery,
   getPendingOrders,
   getCompletedOrders,
   signup,
