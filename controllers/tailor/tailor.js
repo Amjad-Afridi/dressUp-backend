@@ -162,6 +162,15 @@ const getAllTailors = (req, res) => {
 };
 
 const createService = async (req, res) => {
+  const isServiceAvailable = await TailorService.find({
+    tailor: req.userId,
+    serviceType: req.body.serviceType,
+  });
+  if (isServiceAvailable) {
+    return res
+      .status(400)
+      .json({ message: "can't create service again with the same type " });
+  }
   let service = await TailorService.create({
     name: req.body.name,
     description: req.body.description,
