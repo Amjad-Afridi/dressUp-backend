@@ -8,6 +8,7 @@ const RiderCompletedOrders = require("../../models/rider/RiderCompletedOrders");
 const { response } = require("express");
 const CustomerProfile = require("../../models/customer/customerProfile");
 const TailorProfile = require("../../models/tailor/tailorProfile");
+const TailorEarnings = require("../../models/tailor/earnings");
 
 const signup = (req, res) => {
   bcrypt.hash(req.body.password, 10, async (err, hash) => {
@@ -165,10 +166,14 @@ const acceptOrder = async (req, res) => {
 };
 
 const deliveredToTailor = async (req, res) => {
+  var tailorId;
+  var price;
   OrderTailor.findOne({ _id: req.params.id, rider: req.userId })
     .then((result) => {
       if (result.orderStatus === "rider-accepted") {
         result.orderStatus = "pending";
+        tailorId = result.tailor;
+        price = Number(result.price);
         result.save();
         res.status(200).json({ result: result });
       } else {
@@ -177,6 +182,7 @@ const deliveredToTailor = async (req, res) => {
           .json({ message: "you are not authorized to do this operation" });
       }
     })
+    .then()
     .catch((err) => {
       res.status(500).json({ err });
     });
@@ -186,6 +192,18 @@ const deliveredToTailor = async (req, res) => {
     rider: req.userId,
   });
   order.save();
+
+  const findTailor = await TailorEarnings.findOne({ tailorId: tailorId });
+  if (!findTailor) {
+    const newEarning = await TailorEarnings.create({
+      tailorId: tailorId,
+      pendingEarnings: price,
+    });
+    await newEarning.save();
+  } else {
+    findTailor.pendingEarnings += price;
+    await findTailor.save();
+  }
 };
 
 const deliveredToCustomer = async (req, res) => {

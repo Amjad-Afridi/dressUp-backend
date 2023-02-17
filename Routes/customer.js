@@ -15,6 +15,7 @@ const {
   allCustomers,
   rateTailorService,
   completeOrder,
+  serviceCategory,
 } = require("../controllers/customer/customer");
 const checkCustomerAuth = require("../middleware/checkCustomerAuth");
 router.post("/signup", signup);
@@ -34,6 +35,7 @@ router.get("/completed-orders", checkCustomerAuth, getCompletedOrders);
 router.get("/pending-orders", checkCustomerAuth, getPendingOrders);
 router.get("/near-tailors", checkCustomerAuth, getNearByTailors);
 router.put("/complete-order/:id", checkCustomerAuth, completeOrder);
+router.get("/service/:category", checkCustomerAuth, serviceCategory);
 router.get("/", allCustomers);
 
 module.exports = router;

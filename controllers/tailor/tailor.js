@@ -4,6 +4,7 @@ const TailorProfile = require("../../models/tailor/tailorProfile");
 const TailorService = require("../../models/tailor/tailorService.js");
 const OrderTailor = require("../../models/customer/orderTailor");
 const ProjectDesigns = require("../../models/tailor/projectDesigns.js");
+const TailorEarnings = require("../../models/tailor/earnings.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -162,30 +163,35 @@ const getAllTailors = (req, res) => {
 };
 
 const createService = async (req, res) => {
-  const isServiceAvailable = await TailorService.find({
+  var service = await TailorService.findOne({
     tailor: req.userId,
-    serviceType: req.body.serviceType,
-  });
-  if (isServiceAvailable) {
-    return res
-      .status(400)
-      .json({ message: "can't create service again with the same type " });
-  }
-  let service = await TailorService.create({
-    name: req.body.name,
-    description: req.body.description,
-    imgUrl: req.file.path,
-    price: req.body.price,
-    serviceType: req.body.serviceType,
-    city: req.body.city,
-    tailor: req.userId,
-    expectedDelivery: req.body.expectedDelivery,
   });
 
-  await service.save((err, user) => {
-    if (err) return console.error(err);
-    res.json(user);
-  });
+  if (!service) {
+    var serviceType = req.body.serviceType.split(" ");
+    var files = req.files.map((file) => {
+      return file.path;
+    });
+
+    TailorService.create({
+      name: req.body.name,
+      description: req.body.description,
+      imgUrl: files,
+      price: req.body.price,
+      serviceType: serviceType,
+      city: req.body.city,
+      tailor: req.userId,
+      expectedDelivery: req.body.expectedDelivery,
+    })
+      .then((result) => {
+        res.status(200).json({ result });
+      })
+      .catch((err) => {
+        res.status(500).json({ err });
+      });
+  } else {
+    return res.status(400).json({ message: "can't create service again !" });
+  }
 };
 
 const getTailorServices = (req, res) => {
@@ -243,9 +249,13 @@ const getCompletedOrders = async (req, res) => {
 };
 
 const completeOrder = async (req, res) => {
-  OrderTailor.findById(req.params.id)
+  var tailorId;
+  var price;
+  await OrderTailor.findById(req.params.id)
     .then((result) => {
-      if (result.orderStatus === "rider-accepted") {
+      if (result.orderStatus === "pending") {
+        tailorId = result.tailor;
+        price = Number(result.price);
         result.orderStatus = "waiting-for-rider";
         var exchangeLocation = result.pickUpLocation;
         result.pickUpLocation = result.dropUpLocation;
@@ -265,6 +275,12 @@ const completeOrder = async (req, res) => {
     $unset: { rider: "" },
     new: true,
   });
+
+  const findTailor = await TailorEarnings.findOne({ tailorId: req.userId });
+  findTailor.pendingEarnings -= price;
+  findTailor.totalEarnings += price;
+  await findTailor.save();
+  console.log(findTailor);
 };
 
 const uploadImage = async (req, res) => {

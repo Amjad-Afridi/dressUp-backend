@@ -41,12 +41,7 @@ router.get("/pending-orders", checkTailorAuth, getPendingOrders);
 router.get("/completed-orders", checkTailorAuth, getCompletedOrders);
 router.get("/view-gallery", checkTailorAuth, viewGallery);
 router.get("/:id", getTailorById);
-router.post(
-  "/service",
-  upload.single("imgUrl"),
-  checkTailorAuth,
-  createService
-);
+router.post("/service", upload.any("imgUrl"), checkTailorAuth, createService);
 router.post(
   "/upload-image",
   upload.single("imgUrl"),

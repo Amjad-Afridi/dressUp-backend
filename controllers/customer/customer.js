@@ -36,8 +36,7 @@ const signup = (req, res) => {
 
 const login = (req, res) => {
   Customer.find({ email: req.body.email })
-    // .exec()
-
+    
     .then((result) => {
       if (result.length < 1) {
         res.status(401).json({
@@ -193,6 +192,31 @@ const getNearByTailors = async (req, res) => {
     });
 };
 
+const serviceCategory = async (req, res) => {
+  const { city } = await CustomerProfile.findOne({
+    customer: req.userId,
+  }).select("city");
+  TailorService.find({ city: city })
+    // .populate({
+    //   path: "tailor",
+    //   model: "Tailor",
+    //   select: "-password -__v",
+    // })
+    .then((result) => {
+      var services = result.filter((service) =>
+        service.serviceType.includes(req.params.category)
+      );
+      res.status(200).json({
+        result: services,
+      });
+    })
+    .catch((err) => {
+      res.status(500).json({
+        err,
+      });
+    });
+};
+
 const orderTailor = async (req, res) => {
   const { tailor } = await TailorService.findById(req.body.serviceId).select(
     "tailor"
@@ -295,4 +319,5 @@ module.exports = {
   completeOrder,
   orderTailor,
   allCustomers,
+  serviceCategory,
 };
