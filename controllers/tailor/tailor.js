@@ -7,6 +7,7 @@ const ProjectDesigns = require("../../models/tailor/projectDesigns.js");
 const TailorEarnings = require("../../models/tailor/earnings.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const AdminEarnings = require("../../models/admin/earnings.js");
 
 const signup = (req, res) => {
   bcrypt.hash(req.body.password, 10, async (err, hash) => {
@@ -277,10 +278,13 @@ const completeOrder = async (req, res) => {
   });
 
   const findTailor = await TailorEarnings.findOne({ tailorId: req.userId });
-  findTailor.pendingEarnings -= price;
-  findTailor.totalEarnings += price;
+  findTailor.pendingEarnings -= price * 0.8;
+  findTailor.totalEarnings += price * 0.8;
   await findTailor.save();
-  console.log(findTailor);
+
+  const findAdmin = await AdminEarnings.findOne({});
+  findAdmin.totalEarnings -= price * 0.8;
+  await findAdmin.save();
 };
 
 const uploadImage = async (req, res) => {
@@ -317,6 +321,15 @@ const deleteImage = async (req, res) => {
     });
 };
 
+const tailorEarnings = async (req, res) => {
+  await TailorEarnings.findOne({ tailorId: req.userId })
+    .then((result) => {
+      res.status(200).json({ result });
+    })
+    .catch((err) => {
+      res.status(500).json({ err: err.message });
+    });
+};
 module.exports = {
   uploadImage,
   deleteImage,
@@ -335,4 +348,5 @@ module.exports = {
   deleteService,
   updateService,
   completeOrder,
+  tailorEarnings,
 };

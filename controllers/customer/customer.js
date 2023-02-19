@@ -10,6 +10,7 @@ const ProductsOrder = require("../../models/customer/productsOrder.js");
 const CustomerProfile = require("../../models/customer/customerProfile.js");
 const OrderTailor = require("../../models/customer/orderTailor.js");
 const PendingOrders = require("../../models/customer/pendingOrders.js");
+const AdminEarnings = require("../../models/admin/earnings.js");
 const signup = (req, res) => {
   bcrypt.hash(req.body.password, 10, async (err, hash) => {
     if (err) {
@@ -36,7 +37,7 @@ const signup = (req, res) => {
 
 const login = (req, res) => {
   Customer.find({ email: req.body.email })
-    
+
     .then((result) => {
       if (result.length < 1) {
         res.status(401).json({
@@ -145,6 +146,18 @@ const createOrder = async (req, res) => {
   } else {
     return res.status(500).json("no order created !!");
   }
+
+  var price = Number(req.body.totalPrice);
+  const findAdmin = await AdminEarnings.findOne({});
+  if (!findAdmin) {
+    const newEarning = await AdminEarnings.create({
+      totalEarnings: price,
+    });
+    newEarning.save();
+  } else {
+    findAdmin.totalEarnings += price;
+    await findAdmin.save();
+  }
 };
 
 const getPendingOrders = async (req, res) => {
@@ -197,11 +210,6 @@ const serviceCategory = async (req, res) => {
     customer: req.userId,
   }).select("city");
   TailorService.find({ city: city })
-    // .populate({
-    //   path: "tailor",
-    //   model: "Tailor",
-    //   select: "-password -__v",
-    // })
     .then((result) => {
       var services = result.filter((service) =>
         service.serviceType.includes(req.params.category)
@@ -238,6 +246,7 @@ const orderTailor = async (req, res) => {
     pickUpLocation: req.body.pickUpLocation,
     dropUpLocation: shopLocation,
     measurementType: req.body.measurementType,
+    earning: (Number(req.body.price) * 0.05).toString(),
   });
   const result = await order.save();
   if (result) {
@@ -245,11 +254,22 @@ const orderTailor = async (req, res) => {
   } else {
     return res.status(500).json("no order created !!");
   }
-
   await PendingOrders.create({
     order: result._id,
     customer: req.userId,
   });
+
+  var price = Number(req.body.price);
+  const findAdmin = await AdminEarnings.findOne({});
+  if (!findAdmin) {
+    const newEarning = await AdminEarnings.create({
+      totalEarnings: price,
+    });
+    newEarning.save();
+  } else {
+    findAdmin.totalEarnings += price;
+    await findAdmin.save();
+  }
 };
 const allCustomers = async (req, res) => {
   Customer.find({})

@@ -9,7 +9,8 @@ const { response } = require("express");
 const CustomerProfile = require("../../models/customer/customerProfile");
 const TailorProfile = require("../../models/tailor/tailorProfile");
 const TailorEarnings = require("../../models/tailor/earnings");
-
+const RiderEarnings = require("../../models/rider/earnings");
+const AdminEarnings = require("../../models/admin/earnings");
 const signup = (req, res) => {
   bcrypt.hash(req.body.password, 10, async (err, hash) => {
     if (err) {
@@ -131,6 +132,7 @@ const getProfile = async (req, res) => {
 const getAvailableOrders = async (req, res) => {
   var tailorCity;
   var customerCity;
+  var price;
   const availableOrders = await OrderTailor.find({
     orderStatus: "waiting-for-rider",
   });
@@ -145,11 +147,14 @@ const getAvailableOrders = async (req, res) => {
       }).select("city");
 
       if (customerCity && tailorCity && customerCity.city == tailorCity.city) {
+        // price = Number(availableOrder.price) * 0.05;
+        // availableOrder.earning = price;
+        // console.log(availableOrder);
         return availableOrder;
       }
     })
   );
-  res.status(200).json({ result });
+  res.status(200).json({ result: result });
 };
 
 const acceptOrder = async (req, res) => {
@@ -168,7 +173,7 @@ const acceptOrder = async (req, res) => {
 const deliveredToTailor = async (req, res) => {
   var tailorId;
   var price;
-  OrderTailor.findOne({ _id: req.params.id, rider: req.userId })
+  await OrderTailor.findOne({ _id: req.params.id, rider: req.userId })
     .then((result) => {
       if (result.orderStatus === "rider-accepted") {
         result.orderStatus = "pending";
@@ -184,7 +189,7 @@ const deliveredToTailor = async (req, res) => {
     })
     .then()
     .catch((err) => {
-      res.status(500).json({ err });
+      res.status(500).json({ err: err.message });
     });
 
   const order = await RiderCompletedOrders.create({
@@ -197,17 +202,32 @@ const deliveredToTailor = async (req, res) => {
   if (!findTailor) {
     const newEarning = await TailorEarnings.create({
       tailorId: tailorId,
-      pendingEarnings: price,
+      pendingEarnings: price * 0.8,
     });
     await newEarning.save();
   } else {
-    findTailor.pendingEarnings += price;
+    findTailor.pendingEarnings += price * 0.8;
     await findTailor.save();
   }
+
+  const findRider = await RiderEarnings.findOne({ riderId: req.userId });
+  if (!findRider) {
+    const newEarning = await RiderEarnings.create({
+      riderId: req.userId,
+      totalEarnings: price * 0.05,
+    });
+  } else {
+    findRider.totalEarnings += price * 0.05;
+    await findRider.save();
+  }
+
+  const findAdmin = await AdminEarnings.findOne({});
+  findAdmin.totalEarnings -= price * 0.05;
+  await findAdmin.save();
 };
 
 const deliveredToCustomer = async (req, res) => {
-  OrderTailor.findOne({ _id: req.params.id, rider: req.userId })
+  await OrderTailor.findOne({ _id: req.params.id, rider: req.userId })
     .then((result) => {
       if (result.orderStatus === "rider-accepted") {
         result.orderStatus = "delivered-to-customer";
@@ -233,12 +253,28 @@ const deliveredToCustomer = async (req, res) => {
     rider: req.userId,
   });
   order.save();
+
+  const findRider = await RiderEarnings.findOne({ riderId: req.userId });
+  if (!findRider) {
+    const newEarning = await RiderEarnings.create({
+      riderId: req.userId,
+      totalEarnings: price * 0.05,
+    });
+  } else {
+    findRider.totalEarnings += price * 0.05;
+    await findRider.save();
+  }
+
+  const findAdmin = await AdminEarnings.findOne({});
+  findAdmin.totalEarnings -= price * 0.05;
+  await findAdmin.save();
 };
 
 const deliveryInProgress = async (req, res) => {
+  var price;
   OrderTailor.find({ rider: req.userId, orderStatus: "rider-accepted" })
     .then((result) => {
-      res.status(200).json({ result: result });
+      res.status(200).json({ result: result, earning: price });
     })
     .catch((err) => {
       res
@@ -259,6 +295,17 @@ const completedDeliveries = async (req, res) => {
         .json({ message: "no completed orders found for this rider" });
     });
 };
+
+const riderEarnings = async (req, res) => {
+  await RiderEarnings.findOne({ riderId: req.userId })
+    .then((result) => {
+      res.status(200).json({ result });
+    })
+    .catch((err) => {
+      res.status(500).json({ err: err.message });
+    });
+};
+
 module.exports = {
   signup,
   login,
@@ -271,4 +318,5 @@ module.exports = {
   deliveredToCustomer,
   deliveryInProgress,
   completedDeliveries,
+  riderEarnings
 };

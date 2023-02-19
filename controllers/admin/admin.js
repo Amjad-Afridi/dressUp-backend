@@ -94,7 +94,6 @@ const createProduct = (req, res) => {
 };
 
 const allProducts = (req, res) => {
-  console.log(req.user);
   Products.find()
     .then((result) => {
       res.status(200).json({
@@ -103,7 +102,7 @@ const allProducts = (req, res) => {
     })
     .catch((err) => {
       res.status(500).json({
-        err,
+        err: err.message,
       });
     });
 };
@@ -117,7 +116,7 @@ const searchByName = (req, res) => {
     })
     .catch((err) => {
       res.status(500).json({
-        error: err,
+        error: err.message,
       });
     });
 };
@@ -130,7 +129,7 @@ const deleteById = (req, res) => {
       })
     )
     .catch((err) => {
-      res.status(500).json({ error: err });
+      res.status(500).json({ error: err.message });
     });
 };
 
@@ -143,7 +142,7 @@ const getByCategory = (req, res) => {
     })
     .catch((err) => {
       res.status(500).json({
-        error: err,
+        error: err.message,
       });
     });
 };
@@ -154,7 +153,7 @@ const updateById = (req, res) => {
       res.status(200).json({ result });
     })
     .catch((error) => {
-      res.status(500).json({ error: error });
+      res.status(500).json({ error: err.message });
     });
 };
 

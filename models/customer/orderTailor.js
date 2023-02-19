@@ -20,5 +20,6 @@ const orderTailorSchema = mongoose.Schema({
   price: String,
   measurementType: String,
   description: String,
+  earning: String,
 });
 module.exports = mongoose.model("OrderTailor", orderTailorSchema);
