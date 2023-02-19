@@ -330,7 +330,22 @@ const tailorEarnings = async (req, res) => {
       res.status(500).json({ err: err.message });
     });
 };
+
+const withdrawnAmount = async (req, res) => {
+  var findTailor = await TailorEarnings.findOne({ tailorId: req.userId });
+  findTailor.totalWithdrawn += Number(req.body.amount);
+  await findTailor
+    .save()
+    .then((result) => {
+      res.status(200).json({ result });
+    })
+    .catch((err) => {
+      res.status(500).json({ err: err.message });
+    });
+};
+
 module.exports = {
+  withdrawnAmount,
   uploadImage,
   deleteImage,
   viewGallery,

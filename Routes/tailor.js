@@ -20,6 +20,8 @@ const {
   viewGallery,
   deleteImage,
   tailorEarnings,
+  withdrawnAmount,
+
 } = require("../controllers/tailor/tailor");
 const checkTailorAuth = require("../middleware/checkTailorAuth");
 router.post("/signup", signup);
@@ -42,7 +44,7 @@ router.get("/pending-orders", checkTailorAuth, getPendingOrders);
 router.get("/completed-orders", checkTailorAuth, getCompletedOrders);
 router.get("/view-gallery", checkTailorAuth, viewGallery);
 router.get("/earnings", checkTailorAuth, tailorEarnings);
-
+router.post("/withdraw-amount", checkTailorAuth, withdrawnAmount);
 router.get("/:id", getTailorById);
 router.post("/service", upload.any("imgUrl"), checkTailorAuth, createService);
 router.post(
@@ -51,4 +53,5 @@ router.post(
   checkTailorAuth,
   uploadImage
 );
+
 module.exports = router;

@@ -227,6 +227,7 @@ const deliveredToTailor = async (req, res) => {
 };
 
 const deliveredToCustomer = async (req, res) => {
+  var price;
   await OrderTailor.findOne({ _id: req.params.id, rider: req.userId })
     .then((result) => {
       if (result.orderStatus === "rider-accepted") {
@@ -234,6 +235,7 @@ const deliveredToCustomer = async (req, res) => {
         var exchangeLocation = result.pickUpLocation;
         result.pickUpLocation = result.dropUpLocation;
         result.dropUpLocation = exchangeLocation;
+        price = Number(result.price);
         result.save();
         res
           .status(200)
@@ -306,6 +308,19 @@ const riderEarnings = async (req, res) => {
     });
 };
 
+const withdrawnAmount = async (req, res) => {
+  var findRider = await RiderEarnings.findOne({ riderId: req.userId });
+  findRider.totalWithdrawn += Number(req.body.amount);
+  await findRider
+    .save()
+    .then((result) => {
+      res.status(200).json({ result });
+    })
+    .catch((err) => {
+      res.status(500).json({ err: err.message });
+    });
+};
+
 module.exports = {
   signup,
   login,
@@ -318,5 +333,6 @@ module.exports = {
   deliveredToCustomer,
   deliveryInProgress,
   completedDeliveries,
-  riderEarnings
+  riderEarnings,
+  withdrawnAmount,
 };

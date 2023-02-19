@@ -16,6 +16,7 @@ const {
   completedDeliveries,
   rider,
   riderEarnings,
+  withdrawnAmount,
 } = require("../controllers/rider/rider.js");
 
 router.post("/signup", signup);
@@ -29,5 +30,7 @@ router.put("/accept-order/:id", checkRiderAuth, acceptOrder);
 router.put("/delivered-to-tailor/:id", checkRiderAuth, deliveredToTailor);
 router.put("/delivered-to-customer/:id", checkRiderAuth, deliveredToCustomer);
 router.get("/earnings", checkRiderAuth, riderEarnings);
+router.post("/withdraw-amount", checkRiderAuth, withdrawnAmount);
+
 router.get("/", allRiders);
 module.exports = router;
