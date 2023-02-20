@@ -261,6 +261,9 @@ const completeOrder = async (req, res) => {
         var exchangeLocation = result.pickUpLocation;
         result.pickUpLocation = result.dropUpLocation;
         result.dropUpLocation = exchangeLocation;
+        if (result.towardsCustomer) {
+          result.towardsCustomer = true;
+        }
         result.save();
         res.status(200).json({ result: result });
       } else {

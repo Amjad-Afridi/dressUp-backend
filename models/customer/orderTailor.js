@@ -21,5 +21,6 @@ const orderTailorSchema = mongoose.Schema({
   measurementType: String,
   description: String,
   earning: String,
+  towardsCustomer: { type: Boolean, default: false },
 });
 module.exports = mongoose.model("OrderTailor", orderTailorSchema);
