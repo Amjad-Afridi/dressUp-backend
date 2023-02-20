@@ -199,6 +199,7 @@ const deliveredToTailor = async (req, res) => {
   order.save();
 
   const findTailor = await TailorEarnings.findOne({ tailorId: tailorId });
+
   if (!findTailor) {
     const newEarning = await TailorEarnings.create({
       tailorId: tailorId,

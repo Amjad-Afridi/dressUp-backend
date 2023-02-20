@@ -281,6 +281,7 @@ const completeOrder = async (req, res) => {
   });
 
   const findTailor = await TailorEarnings.findOne({ tailorId: req.userId });
+
   findTailor.pendingEarnings -= price * 0.8;
   findTailor.totalEarnings += price * 0.8;
   await findTailor.save();
