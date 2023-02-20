@@ -81,7 +81,7 @@ const allRiders = async (req, res) => {
   RiderProfile.find()
     .select("userName imgUrl phoneNumber")
     .then((customers) => {
-      res.status(200).json(customers);
+      res.status(200).json({ result: customers });
     })
     .catch((err) => {
       res.status(500).json(err.message);
