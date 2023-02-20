@@ -78,8 +78,8 @@ const login = (req, res) => {
     .catch((err) => res.status(500).json({ err: err }));
 };
 const allRiders = async (req, res) => {
-  Rider.find({})
-    .select("-password -__v")
+  RiderProfile.find()
+    .select("userName imgUrl phoneNumber")
     .then((customers) => {
       res.status(200).json(customers);
     })

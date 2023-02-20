@@ -272,8 +272,8 @@ const orderTailor = async (req, res) => {
   }
 };
 const allCustomers = async (req, res) => {
-  Customer.find({})
-    .select("-password -__v")
+  CustomerProfile.find()
+    .select("userName imgUrl phoneNumber")
     .then((customers) => {
       res.status(200).json(customers);
     })

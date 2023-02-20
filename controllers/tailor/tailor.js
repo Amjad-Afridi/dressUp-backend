@@ -148,9 +148,9 @@ const getTailorById = async (req, res) => {
     });
 };
 
-const getAllTailors = (req, res) => {
-  Tailor.find()
-    .select("-password -__v")
+const getAllTailors = async (req, res) => {
+  TailorProfile.find()
+    .select("userName imgUrl phoneNumber")
     .then((result) => {
       res.status(200).json({
         result,
